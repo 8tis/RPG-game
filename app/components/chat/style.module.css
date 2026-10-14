@@ -1,6 +1,12 @@
 .answerIcon {
   position: relative;
-  background: url(./icons/robot.svg);
+  background-image: url(./icons/bot-avatar.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(147, 51, 234, 0.4);
+  border: 1.5px solid rgba(147, 51, 234, 0.6);
 }
 
 .typeingIcon {

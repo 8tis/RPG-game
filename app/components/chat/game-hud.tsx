@@ -61,10 +61,8 @@ XP系统: ${profile.xp} ｜ 特质: ${profile.others}
           {/* 左侧：主机状态 */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[2px] shadow-md">
-                <div className="w-full h-full bg-[#0a0f1d] rounded-[10px] flex items-center justify-center text-cyan-400 font-black text-sm tracking-tighter">
-                  HUD
-                </div>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[2px] shadow-md overflow-hidden">
+                <img src="/bot-avatar.jpg" alt="HUD" className="w-full h-full object-cover rounded-[10px]" />
               </div>
               <span className="absolute -top-1 -right-1 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>

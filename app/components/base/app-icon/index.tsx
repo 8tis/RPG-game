@@ -23,12 +23,13 @@ const AppIcon: FC<AppIconProps> = ({
         size !== 'medium' && style[size],
         rounded && style.rounded,
         className ?? '',
+        'overflow-hidden',
       )}
       style={{
         background,
       }}
     >
-      🤖
+      <img src="/bot-avatar.jpg" alt="RPG Bot" className="w-full h-full object-cover" />
     </span>
   )
 }
