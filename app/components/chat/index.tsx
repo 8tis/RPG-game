@@ -10,6 +10,8 @@ import Question from './question'
 import type { FeedbackFunc } from './type'
 import type { ChatItem, VisionFile, VisionSettings } from '@/types/app'
 import { TransferMethod } from '@/types/app'
+import QuickCommandsBar from './quick-commands'
+import GameHud from './game-hud'
 import Tooltip from '@/app/components/base/tooltip'
 import Toast from '@/app/components/base/toast'
 import ChatImageUploader from '@/app/components/base/image-uploader/chat-image-uploader'
@@ -58,6 +60,21 @@ const Chat: FC<IChatProps> = ({
 
   const [query, setQuery] = React.useState('')
   const queryRef = useRef('')
+  const textareaRef = useRef<any>(null)
+
+  const handleInsertCommand = (template: string) => {
+    setQuery(template)
+    queryRef.current = template
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus?.()
+        const match = template.match(/\[(.*?)\]/)
+        if (match && match.index !== undefined && textareaRef.current.setSelectionRange) {
+          textareaRef.current.setSelectionRange(match.index, match.index + match[0].length)
+        }
+      }
+    }, 50)
+  }
 
   const handleContentChange = (e: any) => {
     const value = e.target.value
@@ -149,6 +166,9 @@ const Chat: FC<IChatProps> = ({
 
   return (
     <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full')}>
+      {/* 顶部 Game HUD 游戏状态面板 */}
+      <GameHud onStartGame={(msg) => onSend(msg, [])} />
+
       {/* Chat List */}
       <div className="h-full space-y-[30px]">
         {chatList.map((item) => {
@@ -176,66 +196,91 @@ const Chat: FC<IChatProps> = ({
       </div>
       {
         !isHideSendInput && (
-          <div className='fixed z-10 bottom-0 left-1/2 transform -translate-x-1/2 pc:ml-[122px] tablet:ml-[96px] mobile:ml-0 pc:w-[794px] tablet:w-[794px] max-w-full mobile:w-full px-3.5'>
-            <div className='p-[5.5px] max-h-[150px] bg-white border-[1.5px] border-gray-200 rounded-xl overflow-y-auto'>
-              {
-                visionConfig?.enabled && (
-                  <>
-                    <div className='absolute bottom-2 left-2 flex items-center'>
-                      <ChatImageUploader
-                        settings={visionConfig}
-                        onUpload={onUpload}
-                        disabled={files.length >= visionConfig.number_limits}
+          <div className='fixed z-20 bottom-0 left-1/2 transform -translate-x-1/2 pc:ml-[122px] tablet:ml-[96px] mobile:ml-0 pc:w-[794px] tablet:w-[794px] max-w-full mobile:w-full px-3.5 pb-3 pointer-events-none'>
+            <div className='pointer-events-auto'>
+              {/* 风月同款：快捷指令工具栏 */}
+              <QuickCommandsBar onInsertCommand={handleInsertCommand} />
+
+              {/* 风月同款：发光紫色圆角输入框容器 */}
+              <div className='relative p-[7px] max-h-[160px] bg-white/95 backdrop-blur-md border-2 border-purple-500/80 hover:border-purple-600 focus-within:border-purple-600 rounded-2xl shadow-[0_4px_25px_rgba(147,51,234,0.18)] transition-all'>
+                {
+                  visionConfig?.enabled && (
+                    <>
+                      <div className='absolute bottom-2 left-2 flex items-center'>
+                        <ChatImageUploader
+                          settings={visionConfig}
+                          onUpload={onUpload}
+                          disabled={files.length >= visionConfig.number_limits}
+                        />
+                        <div className='mx-1 w-[1px] h-4 bg-black/5' />
+                      </div>
+                      <div className='pl-[52px]'>
+                        <ImageList
+                          list={files}
+                          onRemove={onRemove}
+                          onReUpload={onReUpload}
+                          onImageLinkLoadSuccess={onImageLinkLoadSuccess}
+                          onImageLinkLoadError={onImageLinkLoadError}
+                        />
+                      </div>
+                    </>
+                  )
+                }
+                {
+                  fileConfig?.enabled && (
+                    <div className={`${visionConfig?.enabled ? 'pl-[52px]' : ''} mb-1`}>
+                      <FileUploaderInAttachmentWrapper
+                        fileConfig={fileConfig}
+                        value={attachmentFiles}
+                        onChange={setAttachmentFiles}
                       />
-                      <div className='mx-1 w-[1px] h-4 bg-black/5' />
                     </div>
-                    <div className='pl-[52px]'>
-                      <ImageList
-                        list={files}
-                        onRemove={onRemove}
-                        onReUpload={onReUpload}
-                        onImageLinkLoadSuccess={onImageLinkLoadSuccess}
-                        onImageLinkLoadError={onImageLinkLoadError}
-                      />
-                    </div>
-                  </>
-                )
-              }
-              {
-                fileConfig?.enabled && (
-                  <div className={`${visionConfig?.enabled ? 'pl-[52px]' : ''} mb-1`}>
-                    <FileUploaderInAttachmentWrapper
-                      fileConfig={fileConfig}
-                      value={attachmentFiles}
-                      onChange={setAttachmentFiles}
-                    />
+                  )
+                }
+                <Textarea
+                  ref={textareaRef}
+                  className={`
+                    block w-full px-2 pr-[110px] py-[6px] leading-6 max-h-none text-base text-gray-800 placeholder-gray-400 outline-none appearance-none resize-none bg-transparent
+                    ${visionConfig?.enabled && 'pl-12'}
+                  `}
+                  placeholder="输入你的游戏指令，或点击上方快捷按钮..."
+                  value={query}
+                  onChange={handleContentChange}
+                  onKeyUp={handleKeyUp}
+                  onKeyDown={handleKeyDown}
+                  autoSize
+                />
+                <div className="absolute bottom-2.5 right-4 flex items-center h-8 gap-2">
+                  <div className="text-xs font-mono font-medium text-gray-400 bg-gray-100/90 px-2 py-0.5 rounded-md">
+                    {query.trim().length}
                   </div>
-                )
-              }
-              <Textarea
-                className={`
-                  block w-full px-2 pr-[118px] py-[7px] leading-5 max-h-none text-base text-gray-700 outline-none appearance-none resize-none
-                  ${visionConfig?.enabled && 'pl-12'}
-                `}
-                value={query}
-                onChange={handleContentChange}
-                onKeyUp={handleKeyUp}
-                onKeyDown={handleKeyDown}
-                autoSize
-              />
-              <div className="absolute bottom-2 right-6 flex items-center h-8">
-                <div className={`${s.count} mr-3 h-5 leading-5 text-sm bg-gray-50 text-gray-500 px-2 rounded`}>{query.trim().length}</div>
-                <Tooltip
-                  selector='send-tip'
-                  htmlContent={
-                    <div>
-                      <div>{t('common.operation.send')} Enter</div>
-                      <div>{t('common.operation.lineBreak')} Shift Enter</div>
-                    </div>
-                  }
-                >
-                  <div className={`${s.sendBtn} w-8 h-8 cursor-pointer rounded-md`} onClick={handleSend}></div>
-                </Tooltip>
+                  <Tooltip
+                    selector='send-tip'
+                    htmlContent={
+                      <div>
+                        <div>{t('common.operation.send')} Enter</div>
+                        <div>{t('common.operation.lineBreak')} Shift Enter</div>
+                      </div>
+                    }
+                  >
+                    <button
+                      type="button"
+                      onClick={handleSend}
+                      disabled={!query.trim() || isResponding}
+                      className={cn(
+                        "flex items-center justify-center w-8 h-8 rounded-full transition-all active:scale-95 shadow-md",
+                        query.trim() && !isResponding
+                          ? "bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.4)] cursor-pointer"
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                      )}
+                      title="发送指令"
+                    >
+                      <svg className="w-4 h-4 transform rotate-90 translate-x-[1px]" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                      </svg>
+                    </button>
+                  </Tooltip>
+                </div>
               </div>
             </div>
           </div>
