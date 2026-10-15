@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import cn from 'classnames'
+import WorldAccessModal from './world-access-modal'
 
 interface GameHudProps {
   onStartGame?: (formattedMessage: string) => void
@@ -23,7 +24,7 @@ export const GameHud: React.FC<GameHudProps> = ({
     age: '20',
     appearance: '一袭黑衣，眼神冷冽如刀',
     personality: '极致理智、善于洞察微末因果',
-    xp: '无',
+    xp: '超低消耗无限重生系统',
     others: '善于暗中布局与死局翻盘',
   })
 
@@ -31,23 +32,20 @@ export const GameHud: React.FC<GameHudProps> = ({
   const [world, setWorld] = useState('344.无限恐怖 (生化危机一·激光通道)')
   const [importanceRank, setImportanceRank] = useState<'E' | 'D' | 'C' | 'B' | 'A' | 'S'>('E')
 
-  const recommendedWorlds = [
-    '344.无限恐怖 (生化危机一·激光通道)',
-    '316.宿命之环 (诡秘之主二部·特里尔)',
-    '437.梦幻西游 (人仙魔三界乱世)',
-    '215.变形金刚 (塞伯坦星火种源)',
-    '01.火影忍者 (木叶村忍者学校)',
-    '03.死神 (尸魂界护廷十三队)',
-  ]
-
-  const handleLaunch = () => {
-    const formattedMessage = `【宿主初始灵魂档案已锚定】
-姓名: ${profile.name} ｜ 性别: ${profile.gender} ｜ 年龄: ${profile.age}
-外貌: ${profile.appearance} ｜ 性格: ${profile.personality}
-XP系统: ${profile.xp} ｜ 特质: ${profile.others}
-开局模式: ${mode} ｜ 锚定位面: ${world}
-
-灵魂绑定完毕，请系统为主机开启第一幕降临剧情！`
+  const handleLaunch = (formattedMessage: string) => {
+    // 自动提取位面与宿主名，用于同步 HUD 显示
+    const worldMatch = formattedMessage.match(/1\.\s*锚定位面：([^\n]+)/)
+    if (worldMatch && worldMatch[1]) {
+      setWorld(worldMatch[1].trim())
+    }
+    const nameMatch = formattedMessage.match(/姓名:\s*([^\s｜|]+)/)
+    if (nameMatch && nameMatch[1]) {
+      setProfile((prev) => ({ ...prev, name: nameMatch[1].trim() }))
+    }
+    const rankMatch = formattedMessage.match(/\[评级:\s*([A-Za-z]+)\]/)
+    if (rankMatch && rankMatch[1]) {
+      setImportanceRank(rankMatch[1].trim().toUpperCase() as any)
+    }
 
     onStartGame?.(formattedMessage)
     setShowSetupModal(false)
@@ -144,118 +142,12 @@ XP系统: ${profile.xp} ｜ 特质: ${profile.others}
         )}
       </div>
 
-      {/* 录入身份 / 位面锚定弹窗 */}
-      {showSetupModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="w-full max-w-lg p-6 bg-[#0a101f] text-gray-200 rounded-2xl shadow-2xl border-2 border-cyan-500/60 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-cyan-500/30 mb-4">
-              <h3 className="font-black text-base text-cyan-400 tracking-wider">
-                🌌 诸天位面锚定与灵魂档案配置
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowSetupModal(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-cyan-300 mb-1">宿主姓名</label>
-                <input
-                  type="text"
-                  value={profile.name}
-                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#050b17] border border-cyan-800 rounded-lg text-white focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-cyan-300 mb-1">性别</label>
-                  <select
-                    value={profile.gender}
-                    onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#050b17] border border-cyan-800 rounded-lg text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="男">男</option>
-                    <option value="女">女</option>
-                    <option value="未知/秀吉">未知 / 秀吉</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold text-cyan-300 mb-1">年龄</label>
-                  <input
-                    type="number"
-                    value={profile.age}
-                    onChange={(e) => setProfile({ ...profile, age: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#050b17] border border-cyan-800 rounded-lg text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-cyan-300 mb-1">外貌描写</label>
-                <input
-                  type="text"
-                  value={profile.appearance}
-                  onChange={(e) => setProfile({ ...profile, appearance: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#050b17] border border-cyan-800 rounded-lg text-white focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-cyan-300 mb-1">性格与特质</label>
-                <input
-                  type="text"
-                  value={profile.personality}
-                  onChange={(e) => setProfile({ ...profile, personality: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#050b17] border border-cyan-800 rounded-lg text-white focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-cyan-300 mb-1">位面锚定（选择或输入你要前往的世界）</label>
-                <input
-                  type="text"
-                  value={world}
-                  onChange={(e) => setWorld(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#050b17] border border-cyan-800 rounded-lg text-white focus:outline-none focus:border-cyan-400 mb-2"
-                />
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {recommendedWorlds.map((w) => (
-                    <button
-                      key={w}
-                      type="button"
-                      onClick={() => setWorld(w)}
-                      className={cn(
-                        'p-2 text-left rounded-lg border transition-all text-[11px] truncate',
-                        world === w
-                          ? 'bg-cyan-950/80 border-cyan-400 text-cyan-200'
-                          : 'bg-[#060e1d] border-gray-800 text-gray-400 hover:border-gray-600'
-                      )}
-                    >
-                      🎲 {w}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={handleLaunch}
-                  className="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 rounded-xl font-bold text-white text-sm tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all"
-                >
-                  🚀 确认锚定，以该身份启动剧情！
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 诸天位面接入与天赋抽卡模态框 */}
+      <WorldAccessModal
+        isOpen={showSetupModal}
+        onClose={() => setShowSetupModal(false)}
+        onLaunch={handleLaunch}
+      />
     </div>
   )
 }
