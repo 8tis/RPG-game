@@ -1,7 +1,7 @@
 import type { AppInfo } from '@/types/app'
 export const APP_ID = `${process.env.NEXT_PUBLIC_APP_ID || 'd3226876-84e7-4087-a4dd-9d489fa6d626'}`
 export const API_KEY = `${process.env.NEXT_PUBLIC_APP_KEY || 'app-6seHwSEnRrO1hhEbZW1JDy4X'}`
-export const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://43.135.167.237:8080/v1'}`
+export const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://47.122.116.72:8080/v1'}`
 export const APP_INFO: AppInfo = {
   title: '超低消耗无限流——【无限重生系统】',
   description: '诸天无限重生模拟器，开启你的轮回攻略之旅！',
