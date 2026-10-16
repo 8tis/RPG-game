@@ -37,6 +37,28 @@ function transformSpanClasses(text: string): string {
   return result
 }
 
+// 提取 <think>...</think> 思考链内容
+function extractThink(raw: string): { thinkContent: string | null; isThinking: boolean; remainingText: string } {
+  if (!raw) return { thinkContent: null, isThinking: false, remainingText: '' }
+
+  const thinkStart = raw.indexOf('<think>')
+  if (thinkStart === -1) {
+    return { thinkContent: null, isThinking: false, remainingText: raw }
+  }
+
+  const thinkEnd = raw.indexOf('</think>')
+  if (thinkEnd !== -1) {
+    const thinkContent = raw.slice(thinkStart + 7, thinkEnd).trim()
+    const remainingText = (raw.slice(0, thinkStart) + raw.slice(thinkEnd + 8)).trim()
+    return { thinkContent, isThinking: false, remainingText }
+  } else {
+    // 未闭合的 think 标签（通常是正在流式输出中）
+    const thinkContent = raw.slice(thinkStart + 7).trim()
+    const remainingText = raw.slice(0, thinkStart).trim()
+    return { thinkContent, isThinking: true, remainingText }
+  }
+}
+
 // Parse text into regular text segments and collapsible details blocks
 function parseSegments(raw: string): Segment[] {
   if (!raw)
@@ -154,8 +176,62 @@ const CollapsibleDetailsCard: FC<{
   )
 }
 
+// 💭 深度思考折叠卡片（风月专属暗黑赛博风格）
+const CollapsibleThinkCard: FC<{
+  content: string
+  isThinking?: boolean
+}> = ({ content, isThinking = false }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="my-2.5 rounded-xl border border-purple-500/30 bg-[#070b16]/90 overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.3)] transition-all">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ')
+            setIsOpen(!isOpen)
+        }}
+        className="w-full flex items-center justify-between px-3.5 py-2 select-none cursor-pointer bg-gradient-to-r from-purple-950/40 via-[#0d1324] to-purple-950/30 hover:from-purple-900/40 hover:to-purple-900/30 border-b border-purple-500/20 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm">💭</span>
+          <span className="text-xs font-semibold text-purple-300 tracking-wide">
+            {isThinking ? '深度思考演算中...' : '深度思考演算过程'}
+          </span>
+          {isThinking && (
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium">
+          <span>{isOpen ? '收起思考' : '展开思考'}</span>
+          <svg
+            className={cn('w-3.5 h-3.5 transition-transform duration-200', isOpen && 'rotate-180')}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="p-3.5 bg-black/60 text-xs text-gray-300 font-mono leading-relaxed whitespace-pre-wrap max-h-[350px] overflow-y-auto border-t border-purple-500/10">
+          {content}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdownProps) {
-  const segments = useMemo(() => parseSegments(content || ''), [content])
+  const { thinkContent, isThinking, remainingText } = useMemo(() => extractThink(content || ''), [content])
+  const segments = useMemo(() => parseSegments(remainingText || ''), [remainingText])
 
   const components = useMemo(() => ({
     a: ({ href, children, ...props }: any) => {
@@ -175,8 +251,8 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
     },
   }), [])
 
-  // If there are no details blocks, render directly
-  if (segments.length === 1 && segments[0].type === 'text') {
+  // If there are no think and no details blocks, render directly
+  if (!thinkContent && segments.length === 1 && segments[0].type === 'text') {
     return (
       <div className={`streamdown-markdown ${className}`}>
         <Streamdown components={components}>{segments[0].content}</Streamdown>
@@ -186,6 +262,10 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
 
   return (
     <div className={`streamdown-markdown space-y-2 ${className}`}>
+      {thinkContent && (
+        <CollapsibleThinkCard content={thinkContent} isThinking={isThinking} />
+      )}
+
       {segments.map((seg, idx) => {
         if (seg.type === 'details') {
           return (
