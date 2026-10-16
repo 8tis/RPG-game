@@ -3,16 +3,20 @@ import React, { useState } from 'react'
 import cn from 'classnames'
 import WorldAccessModal from './world-access-modal'
 
+import type { ChatItem } from '@/types/app'
+
 interface GameHudProps {
   onStartGame?: (formattedMessage: string) => void
   hasStarted?: boolean
   className?: string
+  chatList?: ChatItem[]
 }
 
 export const GameHud: React.FC<GameHudProps> = ({
   onStartGame,
   hasStarted = true,
   className,
+  chatList = [],
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showSetupModal, setShowSetupModal] = useState(false)
@@ -31,6 +35,37 @@ export const GameHud: React.FC<GameHudProps> = ({
   const [mode, setMode] = useState('全新攻略者')
   const [world, setWorld] = useState('344.无限恐怖 (生化危机一·激光通道)')
   const [importanceRank, setImportanceRank] = useState<'E' | 'D' | 'C' | 'B' | 'A' | 'S'>('E')
+
+  // 监听并从对话历史的第一条降临指令中实时解析世界设定
+  React.useEffect(() => {
+    const firstUserMsg = chatList?.find(item => !item.isAnswer && !item.isOpeningStatement)?.content
+    if (firstUserMsg) {
+      const worldMatch = firstUserMsg.match(/1\.\s*锚定位面：([^\n]+)/)
+      if (worldMatch && worldMatch[1]) {
+        setWorld(worldMatch[1].trim())
+      }
+      const nameMatch = firstUserMsg.match(/姓名:\s*([^\s｜|]+)/)
+      if (nameMatch && nameMatch[1]) {
+        setProfile((prev) => ({ ...prev, name: nameMatch[1].trim() }))
+      }
+      const rankMatch = firstUserMsg.match(/\[评级:\s*([A-Za-z]+)\]/)
+      if (rankMatch && rankMatch[1]) {
+        setImportanceRank(rankMatch[1].trim().toUpperCase() as any)
+      }
+      const personalityMatch = firstUserMsg.match(/性格倾向:\s*([^\n]+)/)
+      if (personalityMatch && personalityMatch[1]) {
+        setProfile((prev) => ({ ...prev, personality: personalityMatch[1].trim() }))
+      }
+      const appearanceMatch = firstUserMsg.match(/外貌特征:\s*([^\n]+)/)
+      if (appearanceMatch && appearanceMatch[1]) {
+        setProfile((prev) => ({ ...prev, appearance: appearanceMatch[1].trim() }))
+      }
+      const othersMatch = firstUserMsg.match(/潜在特质:\s*([^\n]+)/)
+      if (othersMatch && othersMatch[1]) {
+        setProfile((prev) => ({ ...prev, others: othersMatch[1].trim() }))
+      }
+    }
+  }, [chatList])
 
   const handleLaunch = (formattedMessage: string) => {
     // 自动提取位面与宿主名，用于同步 HUD 显示

@@ -11,6 +11,12 @@ export async function GET(request: NextRequest) {
     })
   }
   catch (error) {
-    return NextResponse.json([])
+    return NextResponse.json({
+      user_input_form: [],
+      opening_statement: '',
+      suggested_questions: [],
+    }, {
+      headers: setSession(sessionId),
+    })
   }
 }

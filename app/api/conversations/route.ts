@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
   catch (error: any) {
     return NextResponse.json({
       data: [],
-      error: error.message,
+      has_more: false,
+      limit: 20,
+    }, {
+      headers: setSession(sessionId),
     })
   }
 }

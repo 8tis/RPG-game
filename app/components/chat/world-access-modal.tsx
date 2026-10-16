@@ -181,12 +181,14 @@ interface WorldAccessModalProps {
   isOpen: boolean
   onClose: () => void
   onLaunch: (launchMessage: string) => void
+  isInline?: boolean
 }
 
 export const WorldAccessModal: React.FC<WorldAccessModalProps> = ({
   isOpen,
   onClose,
   onLaunch,
+  isInline = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'mode' | 'world' | 'export'>('world')
 
@@ -339,71 +341,80 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
-      {/* 赛博朋克深黑青色网格主容器 */}
-      <div
-        className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border-2 border-cyan-500/80 shadow-[0_0_35px_rgba(6,182,212,0.35)] overflow-hidden text-gray-200"
-        style={{
-          backgroundColor: '#040812',
-          backgroundImage: 'linear-gradient(rgba(0, 240, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.07) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      >
-        {/* 顶部主导航 Tab 条 */}
-        <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-[#03060f]/90 border-b border-cyan-500/40">
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab('profile')}
-              className={cn(
-                'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
-                activeTab === 'profile'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
-              )}
-            >
-              个人档案
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('mode')}
-              className={cn(
-                'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
-                activeTab === 'mode'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
-              )}
-            >
-              开局模式
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('world')}
-              className={cn(
-                'px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1',
-                activeTab === 'world'
-                  ? 'bg-cyan-500/25 text-cyan-200 border-2 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.5)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
-              )}
-            >
-              <span>世界接入</span>
-              <span className="text-[10px] text-cyan-400 font-mono">(6选1)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('export')}
-              className={cn(
-                'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
-                activeTab === 'export'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
-              )}
-            >
-              数据导出
-            </button>
-          </div>
+  const modalContent = (
+    <div
+      className={cn(
+        'w-full max-w-4xl flex flex-col rounded-2xl border-2 border-cyan-500/80 shadow-[0_0_35px_rgba(6,182,212,0.35)] overflow-hidden text-gray-200',
+        isInline ? 'my-1 max-h-[88vh] min-h-[620px]' : 'max-h-[92vh]',
+      )}
+      style={{
+        backgroundColor: '#040812',
+        backgroundImage: 'linear-gradient(rgba(0, 240, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.07) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
+    >
+      {/* 顶部主导航 Tab 条 */}
+      <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-[#03060f]/90 border-b border-cyan-500/40">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            className={cn(
+              'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
+              activeTab === 'profile'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+            )}
+          >
+            个人档案
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('mode')}
+            className={cn(
+              'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
+              activeTab === 'mode'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+            )}
+          >
+            开局模式
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('world')}
+            className={cn(
+              'px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1',
+              activeTab === 'world'
+                ? 'bg-cyan-500/25 text-cyan-200 border-2 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.5)]'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+            )}
+          >
+            <span>世界接入</span>
+            <span className="text-[10px] text-cyan-400 font-mono">(6选1)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('export')}
+            className={cn(
+              'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
+              activeTab === 'export'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+            )}
+          >
+            数据导出
+          </button>
+        </div>
 
+        {isInline ? (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              首次降临·身份与世界初始化配置
+            </span>
+          </div>
+        ) : (
           <button
             type="button"
             onClick={onClose}
@@ -411,7 +422,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
           >
             ✕
           </button>
-        </div>
+        )}
+      </div>
 
         {/* 内容主体区域 (滚动) */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
@@ -785,13 +797,24 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              稍后配置
-            </button>
+            {isInline ? (
+              <button
+                type="button"
+                onClick={handleExecuteLaunch}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-cyan-300 hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/30 transition-all"
+                title="使用默认初始配置直接启动降临"
+              >
+                ⚡ 默认身份直接降临
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                稍后配置
+              </button>
+            )}
             <button
               type="button"
               onClick={handleExecuteLaunch}
@@ -802,6 +825,19 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
           </div>
         </div>
       </div>
+  )
+
+  if (isInline) {
+    return (
+      <div className="w-full flex justify-center py-2 px-1">
+        {modalContent}
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
+      {modalContent}
     </div>
   )
 }

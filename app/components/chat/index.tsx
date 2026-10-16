@@ -12,6 +12,7 @@ import type { ChatItem, VisionFile, VisionSettings } from '@/types/app'
 import { TransferMethod } from '@/types/app'
 import QuickCommandsBar from './quick-commands'
 import GameHud from './game-hud'
+import WorldAccessModal from './world-access-modal'
 import Tooltip from '@/app/components/base/tooltip'
 import Toast from '@/app/components/base/toast'
 import ChatImageUploader from '@/app/components/base/image-uploader/chat-image-uploader'
@@ -164,14 +165,32 @@ const Chat: FC<IChatProps> = ({
     handleSend()
   }
 
+  // 判断游戏是否已经正式启动（通过判断对话列表是否有用户发送的降临指令或正常提问）
+  const hasGameStarted = chatList.some(item => !item.isOpeningStatement && !item.isAnswer)
+
+  if (!hasGameStarted) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-start py-2 px-2 sm:px-4">
+        <WorldAccessModal
+          isOpen={true}
+          isInline={true}
+          onClose={() => {}}
+          onLaunch={(msg) => onSend(msg, [])}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full')}>
       {/* 顶部 Game HUD 游戏状态面板 */}
-      <GameHud onStartGame={(msg) => onSend(msg, [])} />
+      <GameHud chatList={chatList} onStartGame={(msg) => onSend(msg, [])} />
 
       {/* Chat List */}
       <div className="h-full space-y-[30px]">
-        {chatList.map((item) => {
+        {chatList
+          .filter(item => !item.isOpeningStatement || (item.content && !item.content.includes('在上方视窗完成身份录入')))
+          .map((item) => {
           if (item.isAnswer) {
             const isLast = item.id === chatList[chatList.length - 1].id
             return <Answer

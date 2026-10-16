@@ -204,10 +204,10 @@ const Answer: FC<IAnswerProps> = ({
                   : (
                     <StreamdownMarkdown content={content} />
                   ))}
-              {suggestedQuestions.length > 0 && (
+              {(suggestedQuestions || []).filter(q => q && q.trim()).length > 0 && (
                 <div className="mt-3">
                   <div className="flex gap-1 mt-1 flex-wrap">
-                    {suggestedQuestions.map((suggestion, index) => (
+                    {suggestedQuestions.filter(q => q && q.trim()).map((suggestion, index) => (
                       <div key={index} className="flex items-center gap-1">
                         <Button className="text-sm" type="link" onClick={() => suggestionClick(suggestion)}>{suggestion}</Button>
                       </div>
