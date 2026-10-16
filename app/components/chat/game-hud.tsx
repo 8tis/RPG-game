@@ -113,17 +113,17 @@ export const GameHud: React.FC<GameHudProps> = ({
                   宿主: {profile.name}
                 </span>
               </div>
-              <div className="text-xs text-gray-400 truncate max-w-xs md:max-w-md mt-0.5">
-                当前位面：<span className="text-gray-200">{world}</span>
+              <div className="text-xs text-gray-300 truncate max-w-xs md:max-w-md mt-0.5">
+                当前位面：<span className="text-cyan-200 font-bold">{world}</span>
               </div>
             </div>
           </div>
 
           {/* 右侧：世界重要度评级与操作 */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-black/40 rounded-xl border border-white/10 text-xs">
-              <span className="text-gray-400">世界重要度:</span>
-              <span className="font-black text-sm text-yellow-400 tracking-wider">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#090e1c] rounded-xl border border-cyan-500/30 text-xs">
+              <span className="text-gray-200 font-bold">世界重要度:</span>
+              <span className="font-black text-sm text-yellow-300 tracking-wider">
                 {importanceRank} 级
               </span>
             </div>
@@ -131,7 +131,7 @@ export const GameHud: React.FC<GameHudProps> = ({
             <button
               type="button"
               onClick={() => setShowSetupModal(true)}
-              className="px-3 py-1.5 text-xs font-medium rounded-xl bg-purple-600/80 hover:bg-purple-600 text-white border border-purple-400/40 shadow-xs transition-all active:scale-95"
+              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border border-purple-400/50 shadow-md transition-all active:scale-95"
             >
               ⚙️ 身份/世界设定
             </button>
@@ -139,7 +139,7 @@ export const GameHud: React.FC<GameHudProps> = ({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              className="p-1.5 text-gray-200 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
               title={isExpanded ? '收起属性详情' : '展开属性详情'}
             >
               <svg
@@ -154,24 +154,24 @@ export const GameHud: React.FC<GameHudProps> = ({
           </div>
         </div>
 
-        {/* 展开的宿主详细属性折叠卡 */}
+        {/* 展开的宿主详细属性折叠卡（高清高对比度样式） */}
         {isExpanded && (
-          <div className="mt-3 pt-3 border-t border-purple-500/20 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <div className="p-2 rounded-lg bg-black/30 border border-white/5">
-              <div className="text-gray-400 text-[10px]">核心天赋</div>
-              <div className="font-semibold text-cyan-300 truncate">超低消耗无限重生</div>
+          <div className="mt-3 pt-3 border-t border-purple-500/30 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-cyan-500/40 shadow-inner">
+              <div className="text-cyan-400 text-xs font-bold mb-0.5">核心天赋</div>
+              <div className="font-bold text-sm text-cyan-200 truncate">超低消耗无限重生</div>
             </div>
-            <div className="p-2 rounded-lg bg-black/30 border border-white/5">
-              <div className="text-gray-400 text-[10px]">性格特质</div>
-              <div className="font-semibold text-purple-300 truncate">{profile.personality}</div>
+            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-purple-500/40 shadow-inner">
+              <div className="text-purple-400 text-xs font-bold mb-0.5">性格特质</div>
+              <div className="font-bold text-sm text-purple-200 truncate">{profile.personality}</div>
             </div>
-            <div className="p-2 rounded-lg bg-black/30 border border-white/5">
-              <div className="text-gray-400 text-[10px]">外貌特征</div>
-              <div className="font-semibold text-gray-200 truncate">{profile.appearance}</div>
+            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-sky-500/40 shadow-inner">
+              <div className="text-sky-400 text-xs font-bold mb-0.5">外貌特征</div>
+              <div className="font-bold text-sm text-white truncate">{profile.appearance}</div>
             </div>
-            <div className="p-2 rounded-lg bg-black/30 border border-white/5">
-              <div className="text-gray-400 text-[10px]">隐藏加成</div>
-              <div className="font-semibold text-yellow-300 truncate">{profile.others}</div>
+            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-amber-500/40 shadow-inner">
+              <div className="text-amber-400 text-xs font-bold mb-0.5">隐藏加成</div>
+              <div className="font-bold text-sm text-amber-200 truncate">{profile.others}</div>
             </div>
           </div>
         )}

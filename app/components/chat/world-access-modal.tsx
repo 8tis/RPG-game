@@ -362,8 +362,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             className={cn(
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
               activeTab === 'profile'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+                ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                : 'text-gray-300 hover:text-white hover:bg-white/10',
             )}
           >
             个人档案
@@ -374,8 +374,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             className={cn(
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
               activeTab === 'mode'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+                ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                : 'text-gray-300 hover:text-white hover:bg-white/10',
             )}
           >
             开局模式
@@ -387,7 +387,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1',
               activeTab === 'world'
                 ? 'bg-cyan-500/25 text-cyan-200 border-2 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.5)]'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+                : 'text-gray-300 hover:text-white hover:bg-white/10',
             )}
           >
             <span>世界接入</span>
@@ -399,8 +399,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             className={cn(
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
               activeTab === 'export'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5',
+                ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                : 'text-gray-300 hover:text-white hover:bg-white/10',
             )}
           >
             数据导出
@@ -418,7 +418,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
           >
             ✕
           </button>
@@ -440,7 +440,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                     type="text"
                     value={profile.name}
                     onChange={e => setProfile({ ...profile, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-black/60 border border-cyan-500/40 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 bg-[#081226] border border-cyan-500/50 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-[#0c1630]"
                   />
                 </div>
                 <div>
@@ -448,7 +448,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                   <select
                     value={profile.gender}
                     onChange={e => setProfile({ ...profile, gender: e.target.value })}
-                    className="w-full px-3 py-2 bg-black/60 border border-cyan-500/40 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 bg-[#081226] border border-cyan-500/50 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400 focus:bg-[#0c1630]"
                   >
                     <option value="男">男</option>
                     <option value="女">女</option>
@@ -463,7 +463,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                     type="text"
                     value={profile.appearance}
                     onChange={e => setProfile({ ...profile, appearance: e.target.value })}
-                    className="w-full px-3 py-2 bg-black/60 border border-cyan-500/40 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 bg-[#081226] border border-cyan-500/50 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-[#0c1630]"
                   />
                 </div>
                 <div>
@@ -472,7 +472,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                     type="text"
                     value={profile.personality}
                     onChange={e => setProfile({ ...profile, personality: e.target.value })}
-                    className="w-full px-3 py-2 bg-black/60 border border-cyan-500/40 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 bg-[#081226] border border-cyan-500/50 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-[#0c1630]"
                   />
                 </div>
               </div>
@@ -482,7 +482,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                   type="text"
                   value={profile.xp}
                   onChange={e => setProfile({ ...profile, xp: e.target.value })}
-                  className="w-full px-3 py-2 bg-black/60 border border-cyan-500/40 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-2 bg-[#081226] border border-cyan-500/50 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-[#0c1630]"
                 />
               </div>
               <div>
@@ -491,7 +491,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                   type="text"
                   value={profile.others}
                   onChange={e => setProfile({ ...profile, others: e.target.value })}
-                  className="w-full px-3 py-2 bg-black/60 border border-cyan-500/40 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-2 bg-[#081226] border border-cyan-500/50 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-[#0c1630]"
                 />
               </div>
             </div>
@@ -511,15 +511,15 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                     className={cn(
                       'p-4 rounded-xl border-2 cursor-pointer transition-all',
                       mode === opt.title
-                        ? 'border-cyan-400 bg-cyan-950/40 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
-                        : 'border-white/10 bg-black/40 hover:border-white/30',
+                        ? 'border-cyan-400 bg-cyan-950/60 shadow-[0_0_15px_rgba(6,182,212,0.35)]'
+                        : 'border-cyan-500/20 bg-[#081226]/80 hover:border-cyan-400/50 hover:bg-[#0c1630]',
                     )}
                   >
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1.5">
                       <span className="font-bold text-sm text-white">{opt.title}</span>
                       {mode === opt.title && <span className="text-cyan-400 font-bold">✓</span>}
                     </div>
-                    <p className="text-xs text-gray-400 leading-relaxed">{opt.desc}</p>
+                    <p className="text-xs text-gray-200 leading-relaxed font-normal">{opt.desc}</p>
                   </div>
                 ))}
               </div>
@@ -541,17 +541,17 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                 </button>
 
                 <div className="flex items-center gap-1 overflow-x-auto max-w-full py-1">
-                  <span className="text-[11px] text-gray-400 mr-1 shrink-0">🎲 探测位面:</span>
+                  <span className="text-xs text-cyan-300 font-bold mr-1 shrink-0">🎲 探测位面:</span>
                   {PRESET_WORLDS.map((w, idx) => (
                     <button
                       key={w.id}
                       type="button"
                       onClick={() => handleSelectWorld(idx)}
                       className={cn(
-                        'px-2 py-1 rounded text-[11px] font-semibold shrink-0 transition-all',
+                        'px-2 py-1 rounded text-xs font-semibold shrink-0 transition-all',
                         currentWorldIndex === idx && !isCustomWorld
-                          ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400'
-                          : 'bg-black/50 text-gray-400 hover:text-white border border-white/5',
+                          ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
+                          : 'bg-[#081226] text-gray-200 hover:text-white hover:border-cyan-400/50 border border-cyan-500/30',
                       )}
                     >
                       {w.id}. {w.name.split(' ')[0]}
@@ -561,20 +561,20 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
               </div>
 
               {/* Step 1: 位面展示卡 */}
-              <div className="p-4 rounded-xl border border-cyan-500/60 bg-[#081226]/80 shadow-[0_0_15px_rgba(6,182,212,0.15)] relative">
+              <div className="p-4 rounded-xl border border-cyan-500/60 bg-[#081226]/90 shadow-[0_0_15px_rgba(6,182,212,0.15)] relative">
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-xl sm:text-2xl font-black text-cyan-400 font-mono tracking-wide">
                     {isCustomWorld ? `${customWorld.id}. ${customWorld.name}` : `${currentWorld.id}. ${currentWorld.name}`}
                   </h2>
                 </div>
 
-                <p className="text-xs sm:text-sm text-gray-300 leading-relaxed mb-2.5">
+                <p className="text-xs sm:text-sm text-gray-100 font-normal leading-relaxed mb-2.5">
                   {isCustomWorld ? customWorld.desc : currentWorld.desc}
                 </p>
 
                 <div className="text-xs font-semibold">
-                  <span className="text-rose-500 font-bold">S级存在：</span>
-                  <span className="text-rose-400">{isCustomWorld ? customWorld.sRanks : currentWorld.sRanks}</span>
+                  <span className="text-rose-400 font-black">S级存在：</span>
+                  <span className="text-rose-200 font-medium">{isCustomWorld ? customWorld.sRanks : currentWorld.sRanks}</span>
                 </div>
               </div>
 
@@ -595,17 +595,17 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                   </button>
                 </div>
 
-                <div className="p-3.5 rounded-xl border border-cyan-500/40 bg-black/60 font-mono text-xs space-y-1.5">
+                <div className="p-3.5 rounded-xl border border-cyan-500/50 bg-[#081226]/90 font-mono text-xs space-y-1.5 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400">身份：</span>
+                    <span className="text-cyan-300 font-bold">身份：</span>
                     <span className="text-white font-bold">{selectedIdentity.title}</span>
                     <span className="px-1.5 py-0.5 rounded text-[10px] bg-cyan-900/60 text-cyan-300 border border-cyan-400/50">
                       [{selectedIdentity.rank}]
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <span className="text-gray-400">物资：</span>
-                    <span>{selectedIdentity.items}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-300 font-bold">物资：</span>
+                    <span className="text-gray-100 font-medium">{selectedIdentity.items}</span>
                   </div>
                 </div>
               </div>
@@ -620,17 +620,17 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                 </div>
 
                 {/* 保底机制说明 Banner */}
-                <div className="p-3 rounded-xl border border-cyan-500/30 bg-black/40 text-[11px] text-gray-300 leading-relaxed font-mono space-y-1">
+                <div className="p-3 rounded-xl border border-cyan-500/40 bg-[#081226]/90 text-xs text-gray-100 leading-relaxed font-mono space-y-1">
                   <div>
-                    <span className="text-yellow-400">保底机制：</span>
+                    <span className="text-amber-300 font-bold">保底机制：</span>
                     每5抽必出S，每10抽必出SS，每20抽必出SSS，每50抽必出UR（彩色）。
-                    <span className="ml-2 text-cyan-400">已累计抽取: {pullCount} 次</span>
+                    <span className="ml-2 text-cyan-300 font-bold">已累计抽取: {pullCount} 次</span>
                   </div>
                   <div>
-                    <span className="text-sky-400">规则：</span>
+                    <span className="text-sky-300 font-bold">规则：</span>
                     本源专属天赋 6 选 2，异界+通用天赋 12 选 3。
                   </div>
-                  <div className="text-gray-400">
+                  <div className="text-gray-200 font-medium">
                     可点「🔍 指定天赋」直接挑选任意天赋；已选天赋点 ✕ 可移除。
                   </div>
                 </div>
@@ -652,9 +652,48 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                     className="py-2 px-4 rounded-xl border border-amber-400/80 bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 font-bold text-xs tracking-wide shadow-sm flex items-center gap-1.5 transition-all"
                   >
                     <span>🔍</span>
-                    <span>{showDirectPicker ? '关闭挑选' : '指定天赋（直接挑选，不用抽）'}</span>
+                    <span>{showDirectPicker ? '收起天赋宝库' : '指定天赋（直接挑选，不用抽）'}</span>
                   </button>
                 </div>
+
+                {/* 直接挑选面板 */}
+                {showDirectPicker && (
+                  <div className="p-3.5 rounded-xl border-2 border-amber-400/80 bg-[#08142b] space-y-3 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                        <span>🔍 全局天赋宝库（点选直接装配为通用天赋）</span>
+                      </span>
+                      <span className="text-xs text-cyan-300 font-mono font-bold">
+                        本源 {selectedOriginTalents.length}/2 ｜ 通用 {selectedGeneralTalents.length}/3
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
+                      {GLOBAL_TALENTS.map((t) => {
+                        const isSelected = selectedGeneralTalents.some(sel => sel.name === t.name)
+                        return (
+                          <div
+                            key={t.name}
+                            onClick={() => toggleGeneralTalent(t)}
+                            className={cn(
+                              'p-2.5 rounded-xl border cursor-pointer select-none transition-all',
+                              isSelected
+                                ? 'border-amber-400 bg-amber-950/80 text-amber-100 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                                : 'border-cyan-500/20 bg-[#050b17] hover:border-amber-400/60 hover:bg-[#0c1630]',
+                            )}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className={cn('text-xs font-bold', RANK_COLORS[t.rank] || 'text-white')}>
+                                [{t.rank}] {t.name}
+                              </span>
+                              {isSelected && <span className="text-amber-300 font-bold text-xs">✓ 已选</span>}
+                            </div>
+                            <p className="text-xs text-gray-200 leading-normal font-medium line-clamp-2">{t.desc}</p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* 已选天赋状态栏 */}
                 <div className="p-3 rounded-xl border border-cyan-500/40 bg-[#081222]/80 space-y-2 text-xs">
@@ -663,13 +702,13 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                       已选专属 ({selectedOriginTalents.length}/2):
                     </span>
                     {selectedOriginTalents.length === 0 ? (
-                      <span className="text-gray-500 italic">无</span>
+                      <span className="text-gray-400 italic">无</span>
                     ) : (
                       selectedOriginTalents.map(t => (
                         <span
                           key={t.name}
                           onClick={() => toggleOriginTalent(t)}
-                          className="px-2 py-0.5 rounded-lg border border-purple-400 bg-purple-950/70 text-purple-200 cursor-pointer hover:bg-red-950/60 hover:border-red-400 hover:text-red-300 transition-all flex items-center gap-1 shadow-sm"
+                          className="px-2.5 py-1 rounded-lg border border-purple-400 bg-purple-950/80 text-purple-200 cursor-pointer hover:bg-red-950/60 hover:border-red-400 hover:text-red-300 transition-all flex items-center gap-1 shadow-sm"
                           title="点击移除"
                         >
                           <span className="font-bold">[{t.rank}] {t.name}</span>
@@ -684,13 +723,13 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                       已选通用 ({selectedGeneralTalents.length}/3):
                     </span>
                     {selectedGeneralTalents.length === 0 ? (
-                      <span className="text-gray-500 italic">无</span>
+                      <span className="text-gray-400 italic">无</span>
                     ) : (
                       selectedGeneralTalents.map(t => (
                         <span
                           key={t.name}
                           onClick={() => toggleGeneralTalent(t)}
-                          className="px-2 py-0.5 rounded-lg border border-cyan-400 bg-cyan-950/70 text-cyan-200 cursor-pointer hover:bg-red-950/60 hover:border-red-400 hover:text-red-300 transition-all flex items-center gap-1 shadow-sm"
+                          className="px-2.5 py-1 rounded-lg border border-cyan-400 bg-cyan-950/80 text-cyan-200 cursor-pointer hover:bg-red-950/60 hover:border-red-400 hover:text-red-300 transition-all flex items-center gap-1 shadow-sm"
                           title="点击移除"
                         >
                           <span className="font-bold">[{t.rank}] {t.name}</span>
@@ -717,8 +756,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                           className={cn(
                             'p-2.5 rounded-xl border transition-all cursor-pointer select-none relative',
                             isSelected
-                              ? 'border-purple-400 bg-purple-950/60 shadow-[0_0_12px_rgba(192,132,252,0.4)]'
-                              : 'border-white/10 bg-black/50 hover:border-cyan-500/50 hover:bg-black/70',
+                              ? 'border-purple-400 bg-purple-950/70 shadow-[0_0_12px_rgba(192,132,252,0.4)]'
+                              : 'border-cyan-500/25 bg-[#081020] hover:border-purple-400/60 hover:bg-[#0e1630]',
                           )}
                         >
                           <div className="flex items-center justify-between mb-1">
@@ -727,7 +766,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                             </span>
                             {isSelected && <span className="text-purple-300 font-bold text-xs">✓ 已选</span>}
                           </div>
-                          <p className="text-[11px] text-gray-400 leading-tight line-clamp-2">{t.desc}</p>
+                          <p className="text-xs text-gray-200 font-medium leading-relaxed line-clamp-2 mt-1">{t.desc}</p>
                         </div>
                       )
                     })}
@@ -750,8 +789,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                           className={cn(
                             'p-2.5 rounded-xl border transition-all cursor-pointer select-none relative',
                             isSelected
-                              ? 'border-cyan-400 bg-cyan-950/60 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
-                              : 'border-white/10 bg-black/50 hover:border-cyan-500/50 hover:bg-black/70',
+                              ? 'border-cyan-400 bg-cyan-950/70 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                              : 'border-cyan-500/25 bg-[#081020] hover:border-cyan-400/60 hover:bg-[#0e1630]',
                           )}
                         >
                           <div className="flex items-center justify-between mb-1">
@@ -760,7 +799,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
                             </span>
                             {isSelected && <span className="text-cyan-300 font-bold text-xs">✓ 已选</span>}
                           </div>
-                          <p className="text-[11px] text-gray-400 leading-tight line-clamp-2">{t.desc}</p>
+                          <p className="text-xs text-gray-200 font-medium leading-relaxed line-clamp-2 mt-1">{t.desc}</p>
                         </div>
                       )
                     })}
@@ -776,10 +815,10 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
               <h3 className="text-cyan-400 font-bold text-base flex items-center gap-2 border-b border-cyan-500/30 pb-2">
                 <span>📋 降临协议数据预览</span>
               </h3>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-200 font-medium">
                 点击下方「启动降临」将直接把这段经过装配的完整角色数据作为第一幕指令注入给游戏大模型：
               </p>
-              <pre className="p-4 bg-black/80 rounded-xl border border-cyan-500/40 text-cyan-200 text-xs font-mono whitespace-pre-wrap leading-relaxed max-h-[350px] overflow-y-auto">
+              <pre className="p-4 bg-[#081020] rounded-xl border border-cyan-500/50 text-cyan-200 text-xs font-mono whitespace-pre-wrap leading-relaxed max-h-[350px] overflow-y-auto">
                 {launchPayload}
               </pre>
             </div>
@@ -788,7 +827,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
 
         {/* 底部固定操作栏 */}
         <div className="shrink-0 p-4 bg-[#03060f]/95 border-t border-cyan-500/40 flex items-center justify-between gap-3">
-          <div className="text-xs text-gray-400 hidden sm:block">
+          <div className="text-xs text-gray-200 font-medium hidden sm:block">
             当前就绪：<span className="text-cyan-300 font-bold">{isCustomWorld ? customWorld.name : currentWorld.name}</span>
             <span className="mx-1.5">|</span>
             <span>已配专属 {selectedOriginTalents.length}/2</span>
@@ -801,7 +840,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
               <button
                 type="button"
                 onClick={handleExecuteLaunch}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-cyan-300 hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/30 transition-all"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-cyan-300 hover:text-cyan-100 hover:bg-cyan-950/60 border border-cyan-500/40 transition-all"
                 title="使用默认初始配置直接启动降临"
               >
                 ⚡ 默认身份直接降临
@@ -810,7 +849,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
               >
                 稍后配置
               </button>

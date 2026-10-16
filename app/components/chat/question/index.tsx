@@ -16,14 +16,14 @@ const Question: FC<IQuestionProps> = ({ id, content, useCurrentUserAvatar, imgSr
   return (
     <div className='flex items-start justify-end' key={id}>
       <div>
-        <div className={`${s.question} relative text-sm text-gray-900`}>
+        <div className={`${s.question} relative text-sm`}>
           <div
-            className={'mr-2 py-3 px-4 bg-blue-500 rounded-tl-2xl rounded-b-2xl'}
+            className={'mr-2 py-3.5 px-4.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white rounded-tl-2xl rounded-b-2xl shadow-md border border-purple-400/30 font-medium leading-relaxed max-w-2xl text-left'}
           >
             {imgSrcs && imgSrcs.length > 0 && (
               <ImageGallery srcs={imgSrcs} />
             )}
-            <StreamdownMarkdown content={content} />
+            <StreamdownMarkdown content={content} className="text-white [&_*]:text-white [&_strong]:text-cyan-200 [&_code]:bg-black/30 [&_code]:text-cyan-200" />
           </div>
         </div>
       </div>
