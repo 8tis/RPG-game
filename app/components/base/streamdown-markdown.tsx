@@ -17,6 +17,58 @@ interface Segment {
   defaultOpen?: boolean
 }
 
+interface NpcField {
+  name: string
+  val: string
+}
+
+interface ParsedNpc {
+  trigger: string
+  detail: string
+  fields: NpcField[]
+}
+
+// 提取 NPC 卡片结构数据
+function parseNpcContent(rawContent: string): ParsedNpc {
+  let trigger = '🔍 观测判定通过（点击查看详情）'
+  let detail = ''
+  let text = rawContent
+
+  // 1. 匹配并提取 HTML observe-wrap 块
+  const wrapMatch = text.match(/<div[^>]*observe-wrap[^>]*>([\s\S]*?)<\/div>/i)
+  if (wrapMatch) {
+    const inner = wrapMatch[1]
+    const trigMatch = inner.match(/<span[^>]*secret-trigger[^>]*>([\s\S]*?)<\/span>/i)
+    const popMatch = inner.match(/<span[^>]*secret-popup[^>]*>([\s\S]*?)<\/span>/i)
+    if (trigMatch) trigger = trigMatch[1].replace(/<[^>]+>/g, '').trim()
+    if (popMatch) detail = popMatch[1].replace(/<[^>]+>/g, '').trim()
+    text = text.slice(0, wrapMatch.index) + text.slice(wrapMatch.index! + wrapMatch[0].length)
+  }
+
+  // 2. 匹配纯文本观测判定通过容错格式
+  if (!detail) {
+    const textMatch = text.match(/(?:【隐藏信息】\s*)?(?:🔍\s*)?观测判定通过[（(](?:点击查看详情)?[）)]\s*[：:]\s*([^\n<]+)/i)
+    if (textMatch) {
+      detail = textMatch[1].trim()
+      text = text.slice(0, textMatch.index) + text.slice(textMatch.index! + textMatch[0].length)
+    }
+  }
+
+  // 3. 提取标准字段（【基础】、【外貌】、【词条】、【能力】、【定位】、【关系】、【状态】等）
+  const fieldPattern = /【([^】]+)】([\s\S]*?)(?=【|$)/g
+  let fm: RegExpExecArray | null
+  const fields: NpcField[] = []
+  while ((fm = fieldPattern.exec(text)) !== null) {
+    const name = fm[1].trim()
+    const val = fm[2].replace(/<[^>]+>/g, '').trim()
+    if (name !== '隐藏信息' && val) {
+      fields.push({ name, val })
+    }
+  }
+
+  return { trigger, detail, fields }
+}
+
 // 全局深度清洗与语义化转换函数（兼容 PC 与移动端，彻底消除裸 HTML 与未解析标记）
 function cleanAndTransformContent(raw: string): string {
   if (!raw)
@@ -29,46 +81,10 @@ function cleanAndTransformContent(raw: string): string {
   text = text.replace(/`\s*(<\/?(?:span|div|details|summary|p|b|i)[^>]*>)\s*`/gi, '$1')
   text = text.replace(/`\s*(\[[^\]]+\]\(#t-[a-z0-9_-]+\))\s*`/gi, '$1')
 
-  // 2. 将 NPC 观测判定块转换为 #classified-intel 交互卡片链接
-  text = text.replace(/<div(?:\s+class=['"]?observe-wrap[^'">]*['"]?)?>([\s\S]*?)(?:<\/div>|$)/gi, (_, inner) => {
-    let trigger = '🔍 观测判定通过（点击查看详情）'
-    let detail = ''
+  // 2. 将紧密粘连的 【字段】 之间强行补足空行，避免 CommonMark 误将其合并为同一个大列表项
+  text = text.replace(/([^\n])\n(【[^】]+】)/g, '$1\n\n$2')
 
-    // A. 匹配 HTML spans 结构
-    const triggerMatch = inner.match(/<span(?:\s+class=['"]?secret-trigger[^'">]*['"]?)?>([\s\S]*?)(?:<\/span>|$)/i)
-    const popupMatch = inner.match(/<span(?:\s+class=['"]?secret-popup[^'">]*['"]?)?>([\s\S]*?)(?:<\/span>|$)/i)
-
-    if (triggerMatch) {
-      trigger = triggerMatch[1].replace(/<[^>]+>/g, '').trim()
-    }
-    if (popupMatch) {
-      detail = popupMatch[1].replace(/<[^>]+>/g, '').trim()
-    }
-    else if (!triggerMatch) {
-      // 容错匹配：如果内部没有标准 span，提取纯文本
-      detail = inner.replace(/<[^>]+>/g, '').trim()
-    }
-
-    if (!trigger) trigger = '🔍 观测判定通过（点击查看详情）'
-    if (!trigger.includes('🔍')) trigger = `🔍 ${trigger}`
-    if (!detail) detail = '（正在解析深层因果观测情报...）'
-
-    const encodedDetail = encodeURIComponent(detail)
-    return `\n\n[${trigger}](#classified-intel:${encodedDetail})\n\n`
-  })
-
-  // 2.1 纯文本容错：若模型以裸文本输出 🔍 观测判定通过... 格式
-  text = text.replace(/(?:【隐藏信息】\s*)?(?:🔍\s*)?观测判定通过[（(](?:点击查看详情)?[）)]\s*[：:]\s*([^\n<]+)/gi, (_, intel) => {
-    const trigger = '🔍 观测判定通过（点击查看详情）'
-    const encodedDetail = encodeURIComponent(intel.trim())
-    return `\n\n【隐藏信息】\n\n[${trigger}](#classified-intel:${encodedDetail})\n\n`
-  })
-
-  // 清除任何游离在外的 secret-trigger / secret-popup 锚点标签
-  text = text.replace(/\[([\s\S]*?)\]\(#secret-trigger[^\)]*\)/gi, '$1')
-  text = text.replace(/\[([\s\S]*?)\]\(#secret-popup[^\)]*\)/gi, '$1')
-
-  // 3. 将 <span class="t-xxx">内容</span> 转换为 Markdown 链接标记，并转义内部括号以防 CommonMark 解析断裂
+  // 3. 将 <span class="t-xxx">内容</span> 转换为 Markdown 链接标记
   text = text.replace(
     /<span(?:\s+class=['"]?([^'">\s]+)['"]?)?>([\s\S]*?)<\/span>/gi,
     (_, cls, inner) => {
@@ -117,13 +133,10 @@ function parseSegments(raw: string): Segment[] {
   if (!raw)
     return []
 
-  // Check if content has any <details
   if (!/<details/i.test(raw))
     return [{ type: 'text', content: cleanAndTransformContent(raw) }]
 
   const segments: Segment[] = []
-  // Matches either closed <details><summary>...</summary>...</details>
-  // or open/streaming <details><summary>...</summary>... until end
   const detailsRegex = /<details(?:\s+([^>]*))?>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)(?:<\/details>|$)/gi
 
   let lastIndex = 0
@@ -144,7 +157,7 @@ function parseSegments(raw: string): Segment[] {
     segments.push({
       type: 'details',
       summary: summaryText,
-      content: cleanAndTransformContent(bodyContent),
+      content: bodyContent, // 保持原始内容供专用卡片组件进一步结构化解析
       defaultOpen: isOpenAttr,
     })
 
@@ -181,12 +194,14 @@ const handleOptionClick = (text: string) => {
   }
 }
 
-// 🔍 交互对象深层情报卡片组件 (CLASSIFIED_INTEL - 还原原版视觉逻辑)
-const ClassifiedIntel: FC<{ trigger: string; detail: string }> = ({ trigger, detail }) => {
+// 🔍 交互对象深层机密情报卡片组件 (CLASSIFIED_INTEL - 100% 还原原版视觉逻辑与交互)
+export const ClassifiedIntel: FC<{ trigger: string; detail: string }> = ({ trigger, detail }) => {
   const [isOpen, setIsOpen] = useState(false)
 
+  const cleanTrigger = trigger.replace(/^🔍\s*/, '') || '观测判定通过（点击查看详情）'
+
   return (
-    <div className="my-3 select-none">
+    <div className="my-2 select-none">
       {/* 观测判定触发按钮 */}
       <button
         type="button"
@@ -199,7 +214,7 @@ const ClassifiedIntel: FC<{ trigger: string; detail: string }> = ({ trigger, det
         )}
       >
         <span className="text-sm">🔍</span>
-        <span>{trigger.replace(/^🔍\s*/, '')}</span>
+        <span>{cleanTrigger}</span>
         <span className="text-[10px] font-mono transition-transform duration-200">
           {isOpen ? '▲' : '▼'}
         </span>
@@ -223,9 +238,9 @@ const ClassifiedIntel: FC<{ trigger: string; detail: string }> = ({ trigger, det
           >
             {/* 霓虹紫标头 */}
             <div className="bg-[#b000e8] text-white font-mono font-black text-xs py-1.5 tracking-widest text-center shadow-sm select-none flex items-center justify-center gap-2">
-              <span className="text-[10px] text-fuchsia-200">◆</span>
+              <span className="text-[10px] text-fuchsia-200">✦</span>
               <span>CLASSIFIED_INTEL</span>
-              <span className="text-[10px] text-fuchsia-200">◆</span>
+              <span className="text-[10px] text-fuchsia-200">✦</span>
             </div>
 
             {/* 机密内容主体 */}
@@ -233,6 +248,112 @@ const ClassifiedIntel: FC<{ trigger: string; detail: string }> = ({ trigger, det
               {detail}
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// 👥 专属交互 NPC 档案卡片组件（1:1 还原原版风月设计，词条与隐藏信息绝对隔离独立）
+const InteractiveNpcCard: FC<{
+  summary: string
+  content: string
+  defaultOpen?: boolean
+}> = ({ summary, content, defaultOpen = true }) => {
+  const cleanSummary = summary.replace(/^[▶▼\s]+/, '').trim()
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  const { trigger, detail, fields } = useMemo(() => parseNpcContent(content), [content])
+
+  return (
+    <div className="my-3 rounded-xl border border-purple-500/40 bg-[#161220] hover:border-purple-500/70 shadow-[0_0_15px_rgba(168,85,247,0.12)] overflow-hidden transition-all duration-200">
+      {/* 折叠栏头部 */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ')
+            setIsOpen(!isOpen)
+        }}
+        className="w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-3 cursor-pointer select-none bg-[#251b36] hover:bg-[#2d2141] border-b border-purple-500/30 transition-colors"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs font-mono text-purple-300 shrink-0">
+            {isOpen ? '▼' : '▶'}
+          </span>
+          <span className="font-bold text-sm text-[#f3e8ff] truncate tracking-wide">
+            {cleanSummary}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 text-xs text-[#849396] font-medium bg-[#13151b] px-2 py-0.5 rounded-md border border-[#343b44]/60">
+          <span>{isOpen ? '收起' : '展开'}</span>
+        </div>
+      </div>
+
+      {/* 折叠内容区域 */}
+      {isOpen && (
+        <div className="p-4 bg-[#14101d] text-sm text-[#E6ECE8] space-y-2.5">
+          {fields.length > 0 ? (
+            fields.map((f, i) => {
+              if (f.name === '词条') {
+                const traitLines = f.val.split('\n').map(l => l.trim()).filter(Boolean)
+                return (
+                  <div key={i} className="space-y-1.5 my-1">
+                    <div className="font-bold text-white tracking-wide text-xs sm:text-sm">【词条】</div>
+                    {traitLines.map((line, idx) => {
+                      const match = line.match(/^[-*•\s]*[▶▼\s]*\[\s*([蓝金紫绿红白橙灰黑])\s*\]\s*([\s\S]*)/)
+                      if (match) {
+                        const colorChar = match[1]
+                        const textPart = match[2].trim()
+                        return (
+                          <div
+                            key={idx}
+                            className="p-2 rounded-lg border border-cyan-500/40 bg-cyan-500/10 text-cyan-200 shadow-[0_0_8px_rgba(6,182,212,0.15)] flex items-start gap-2 text-xs sm:text-sm"
+                          >
+                            <span className="text-cyan-400 mt-0.5 text-xs">▶</span>
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-bold border border-cyan-400/50 bg-cyan-500/20 text-cyan-300 shrink-0">
+                              {colorChar}
+                            </span>
+                            <span className="font-medium text-cyan-100 flex-1 leading-relaxed">
+                              {textPart}
+                            </span>
+                          </div>
+                        )
+                      }
+                      return (
+                        <div key={idx} className="text-xs text-cyan-200 pl-2">
+                          {line}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              }
+
+              // 常规属性字段
+              return (
+                <div key={i} className="leading-relaxed text-xs sm:text-sm">
+                  <span className="font-bold text-[#E6ECE8] tracking-wide">【{f.name}】</span>
+                  <span className="text-[#c7d2dc] ml-1">{f.val}</span>
+                </div>
+              )
+            })
+          ) : (
+            <Streamdown
+              allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
+              components={storyDarkComponents}
+            >
+              {cleanAndTransformContent(content)}
+            </Streamdown>
+          )}
+
+          {/* 隐藏机密情报卡片（可点击交互展开） */}
+          {detail && (
+            <div className="pt-2 border-t border-[#2d223f] space-y-1.5">
+              <div className="font-bold text-white tracking-wide text-xs sm:text-sm">【隐藏信息】</div>
+              <ClassifiedIntel trigger={trigger} detail={detail} />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -269,44 +390,8 @@ const storyDarkComponents = {
       )
     }
 
-    // 3. 科技青：舰载核心、系统提示、能量回路 (#70D8E0)
-    if (/^(?:舰载核心|系统提示|系统广播|核心回路|检测到|侦测到|【核心】|【系统】|【回路】)/.test(text)) {
-      return (
-        <p className="text-[#70D8E0] font-semibold text-sm sm:text-base leading-relaxed my-2" {...props}>
-          {children}
-        </p>
-      )
-    }
-
-    // 4. 次要信息：星历、时间、地点、航行阶段 (#849396)
-    if (/^(?:星历|时间|地点|航行阶段|纪元|世界线|状态码|坐标)/.test(text)) {
-      return (
-        <p className="text-[#849396] text-xs sm:text-sm font-normal tracking-wide my-1.5" {...props}>
-          {children}
-        </p>
-      )
-    }
-
-    // 5. 灵金：重要对白、言灵警示、双引号重要内容 (#E3C362)
-    if (/^“[^”]+”$/.test(text)) {
-      return (
-        <p className="text-[#E3C362] font-bold text-sm sm:text-base leading-relaxed my-2.5 tracking-wide" {...props}>
-          {children}
-        </p>
-      )
-    }
-
-    // 6. 灵紫：道、灵识、深层异象 (#B396F2)
-    if (text.includes('“道”') || text.includes('灵识') || text.includes('苏醒的“道”')) {
-      return (
-        <p className="text-[#B396F2] font-medium text-sm sm:text-base leading-relaxed my-2" {...props}>
-          {children}
-        </p>
-      )
-    }
-
-    // 7. 词条胶囊行识别（当词条作为独立段落输出时）
-    const traitMatch = text.match(/^[▶▼\s]*\[\s*([蓝金紫绿红白橙灰黑])\s*\]([\s\S]*)/)
+    // 3. 词条胶囊单行识别（严格限制单行匹配，绝不跨行合并后续段落）
+    const traitMatch = text.match(/^[▶▼\s]*\[\s*([蓝金紫绿红白橙灰黑])\s*\]\s*([^\n]+)/)
     if (traitMatch) {
       const colorChar = traitMatch[1]
       const rest = traitMatch[2]
@@ -333,69 +418,34 @@ const storyDarkComponents = {
       )
     }
 
-    // 8. 交互对象与状态栏属性标签：【基础】、【外貌】、【能力】、【定位】、【关系】、【状态】、【隐藏信息】
-    if (/^【(基础|外貌|能力|定位|关系|状态|隐藏信息|词条|基础信息|随身背包|生命与能量|主线任务|支线\/隐藏|系统商店|当前世界|剧情偏移度)】/.test(text)) {
+    // 默认叙事正文
+    return <p className="my-2 leading-relaxed text-[#c7d2dc] text-sm sm:text-base font-normal" {...props}>{children}</p>
+  },
+  strong: ({ children, ...props }: any) => {
+    const text = extractRawText(children).trim()
+    if (/^[A-E]\b|^选项\s*[A-E]/i.test(text)) {
       return (
-        <p className="text-xs sm:text-sm text-[#d4dde2] leading-relaxed my-2 font-sans" {...props}>
+        <strong
+          className="text-[#E3C362] font-black cursor-pointer hover:underline hover:text-[#f3d982] transition-colors"
+          onClick={() => handleOptionClick(text)}
+          title="点击将此决策指令填入输入框"
+          {...props}
+        >
           {children}
-        </p>
+        </strong>
       )
     }
-
-    // 9. 规则说明落款（重要内容使用灵金，危险与警告使用大红色...）
-    if (text.includes('重要内容使用灵金') || text.includes('危险与警告使用大红色')) {
-      return (
-        <p className="text-[#849396] text-xs leading-relaxed mt-4 pt-2.5 border-t border-[#343b44]/60 italic" {...props}>
-          {children}
-        </p>
-      )
-    }
-
-    // 默认正文 (#E6ECE8 柔白)
     return (
-      <p className="text-[#E6ECE8] text-[15px] sm:text-base leading-relaxed my-2.5 font-normal" {...props}>
+      <strong className="text-[#E3C362] font-bold" {...props}>
         {children}
-      </p>
+      </strong>
     )
   },
-  strong: ({ children, ...props }: any) => (
-    <strong className="text-[#E3C362] font-bold" {...props}>{children}</strong>
-  ),
-  em: ({ children, ...props }: any) => (
-    <em className="text-[#B396F2] italic font-medium" {...props}>{children}</em>
-  ),
-  h1: ({ children, ...props }: any) => (
-    <h1 className="text-lg font-black text-[#70D8E0] mt-3.5 mb-1.5" {...props}>{children}</h1>
-  ),
-  h2: ({ children, ...props }: any) => (
-    <h2 className="text-base font-black text-[#70D8E0] mt-3 mb-1.5" {...props}>{children}</h2>
-  ),
-  h3: ({ children, ...props }: any) => {
-    const text = extractRawText(children)
-    if (text.includes('你要如何回应') || text.includes('行动指令') || text.includes('选择')) {
-      return (
-        <div className="text-[#70D8E0] font-bold text-base mt-3.5 mb-1.5 flex items-center gap-2">
-          <span>{children}</span>
-        </div>
-      )
-    }
-    return <h3 className="text-sm font-bold text-[#E3C362] mt-3 mb-1" {...props}>{children}</h3>
-  },
-  ul: ({ children, ...props }: any) => (
-    <div className="my-3 p-3.5 rounded-xl border border-[#363d47] bg-[#25292f] shadow-sm">
-      <ul className="space-y-1.5 list-none m-0 p-0" {...props}>{children}</ul>
-    </div>
-  ),
-  ol: ({ children, ...props }: any) => (
-    <div className="my-3 p-3.5 rounded-xl border border-[#363d47] bg-[#25292f] shadow-sm">
-      <ol className="space-y-1.5 list-none m-0 p-0" {...props}>{children}</ol>
-    </div>
-  ),
   li: ({ children, ...props }: any) => {
     const rawText = extractRawText(children).trim()
 
-    // 词条胶囊行识别：如 [ 蓝 ] 勤奋写手：拥有远超常人的码字速度和毅力。
-    const traitMatch = rawText.match(/^[▶▼\s]*\[\s*([蓝金紫绿红白橙灰黑])\s*\]([\s\S]*)/)
+    // 词条单行胶囊识别
+    const traitMatch = rawText.match(/^[▶▼\s]*\[\s*([蓝金紫绿红白橙灰黑])\s*\]\s*([^\n]+)/)
     if (traitMatch) {
       const colorChar = traitMatch[1]
       const rest = traitMatch[2]
@@ -422,77 +472,70 @@ const storyDarkComponents = {
       )
     }
 
+    // 决策选项行动项 A/B/C/D
+    const isActionChoice = /^[A-E]\b|^选项\s*[A-E]/i.test(rawText)
+    if (isActionChoice) {
+      return (
+        <li
+          className="my-2 p-2.5 rounded-xl bg-[#1b1f26] border border-[#2d3542] hover:border-[#70D8E0] hover:bg-[#222832] transition-all cursor-pointer flex items-start gap-2.5 list-none group text-sm"
+          onClick={() => handleOptionClick(rawText)}
+          title="点击将此决策指令填入输入框"
+          {...props}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#70D8E0] mt-2 group-hover:scale-125 transition-transform shrink-0" />
+          <div className="flex-1 leading-relaxed text-[#c7d2dc] group-hover:text-white transition-colors">
+            {children}
+          </div>
+        </li>
+      )
+    }
+
     return (
-      <li
-        onClick={() => handleOptionClick(rawText)}
-        className="flex items-start gap-2.5 py-1.5 px-2 rounded-lg hover:bg-[#2c333f] cursor-pointer transition-colors group select-none text-[#E6ECE8]"
-        title="点击直接填入此行动"
-        {...props}
-      >
-        <span className="w-2 h-2 rounded-full shrink-0 mt-2 inline-block bg-[#70D8E0] group-hover:shadow-[0_0_8px_#70D8E0]" />
-        <span className="leading-relaxed text-sm sm:text-base group-hover:text-white transition-colors">
-          {children}
-        </span>
+      <li className="my-1.5 flex items-start gap-2 text-[#c7d2dc] text-sm leading-relaxed" {...props}>
+        <span className="w-1.5 h-1.5 rounded-full bg-[#70D8E0] mt-2 shrink-0" />
+        <span className="flex-1">{children}</span>
       </li>
     )
   },
-  blockquote: ({ children, ...props }: any) => {
-    const rawText = extractRawText(children)
-    if (rawText.includes('观测通过') || rawText.includes('观测判定') || rawText.includes('👁️') || rawText.includes('隐秘洞察') || rawText.includes('微观/规则')) {
-      return (
-        <div className="my-2.5 p-3 sm:p-3.5 rounded-xl border border-[#70D8E0]/40 bg-[#162026]/95 shadow-lg backdrop-blur-sm text-sm text-[#E6ECE8]">
-          <div className="flex items-center gap-2 mb-2 text-[#70D8E0] font-bold text-xs sm:text-sm">
-            <span className="w-2 h-2 rounded-full bg-[#70D8E0] shadow-[0_0_8px_#70D8E0] shrink-0 animate-pulse" />
-            <span>【隐秘洞察·观测判定】</span>
-          </div>
-          <div className="pl-3 border-l-2 border-[#70D8E0]/60 text-xs sm:text-sm text-[#E6ECE8]/95 leading-relaxed font-sans">
-            {children}
-          </div>
-        </div>
-      )
-    }
-    return (
-      <blockquote className="border-l-4 border-[#70D8E0] bg-[#25292f]/80 px-4 py-2.5 my-3 rounded-r-xl text-[#E6ECE8] text-sm font-medium leading-relaxed" {...props}>
-        {children}
-      </blockquote>
-    )
-  },
+  blockquote: ({ children, ...props }: any) => (
+    <blockquote className="border-l-2 border-[#70D8E0] pl-4 my-3 text-sm italic text-[#849396] bg-[#14171d] py-2 rounded-r-lg" {...props}>
+      {children}
+    </blockquote>
+  ),
+  hr: (props: any) => (
+    <hr className="border-t border-[#262c36] my-4" {...props} />
+  ),
   table: ({ children, ...props }: any) => (
-    <div className="overflow-x-auto my-3 rounded-xl border border-[#343b44] shadow-inner bg-[#1a1d22]">
-      <table className="w-full text-left text-xs border-collapse" {...props}>{children}</table>
+    <div className="overflow-x-auto my-3 rounded-xl border border-[#343b44] shadow-md">
+      <table className="w-full text-left border-collapse text-xs sm:text-sm bg-[#16191f]" {...props}>
+        {children}
+      </table>
     </div>
   ),
   thead: ({ children, ...props }: any) => (
-    <thead className="bg-[#25292f] text-[#70D8E0] border-b border-[#343b44] font-bold" {...props}>{children}</thead>
+    <thead className="bg-[#1f242d] text-[#70D8E0] font-semibold border-b border-[#343b44]" {...props}>
+      {children}
+    </thead>
+  ),
+  tbody: ({ children, ...props }: any) => (
+    <tbody className="divide-y divide-[#262c36] text-[#c7d2dc]" {...props}>
+      {children}
+    </tbody>
   ),
   th: ({ children, ...props }: any) => (
-    <th className="p-2.5 text-[#70D8E0] font-bold border border-[#343b44]/40 text-xs" {...props}>{children}</th>
+    <th className="px-3.5 py-2.5 font-bold tracking-wider" {...props}>{children}</th>
   ),
   td: ({ children, ...props }: any) => (
-    <td className="p-2.5 text-[#E6ECE8] bg-[#1a1d22] border border-[#343b44]/30 text-xs font-mono" {...props}>{children}</td>
+    <td className="px-3.5 py-2 leading-relaxed" {...props}>{children}</td>
   ),
-  tr: ({ children, ...props }: any) => (
-    <tr className="border-b border-[#343b44]/30 hover:bg-[#25292f]/60 transition-colors" {...props}>{children}</tr>
-  ),
-  code: ({ children, ...props }: any) => {
+  code: ({ children, className, ...props }: any) => {
     const rawText = extractRawText(children)
-    // 兜底防御：若模型仍有反引号包裹 HTML 标签或链接漏入 inline code，解析为正统彩色词条 Badge
     if (/<span\s+class=["']?(t-[^"'\s>]+)["']?>([\s\S]*?)<\/span>/i.test(rawText)) {
       const match = rawText.match(/<span\s+class=["']?(t-[^"'\s>]+)["']?>([\s\S]*?)<\/span>/i)
       if (match) {
         return (
           <span className={`inline-block font-bold px-1.5 py-0.5 rounded text-xs bg-[#25292f] border border-[#363d47] shadow-sm ${match[1]}`}>
             {match[2]}
-          </span>
-        )
-      }
-    }
-    if (/\[([\s\S]*?)\]\(#(t-[a-z0-9_-]+)\)/i.test(rawText)) {
-      const match = rawText.match(/\[([\s\S]*?)\]\(#(t-[a-z0-9_-]+)\)/i)
-      if (match) {
-        return (
-          <span className={`inline-block font-bold px-1.5 py-0.5 rounded text-xs bg-[#25292f] border border-[#363d47] shadow-sm ${match[2]}`}>
-            {match[1].replace(/\\/g, '')}
           </span>
         )
       }
@@ -505,28 +548,10 @@ const storyDarkComponents = {
     <pre className="bg-[#13161c] text-[#70D8E0] p-3.5 rounded-xl border border-[#343b44] text-xs font-mono overflow-x-auto my-2.5" {...props}>{children}</pre>
   ),
   a: ({ href, children, ...props }: any) => {
-    if (href && href.startsWith('#classified-intel:')) {
-      const encoded = href.replace('#classified-intel:', '')
-      let detail = ''
-      try {
-        detail = decodeURIComponent(encoded)
-      } catch {
-        detail = encoded
-      }
-      const trigger = extractRawText(children) || '🔍 观测判定通过（点击查看详情）'
-      return <ClassifiedIntel trigger={trigger} detail={detail} />
-    }
     if (href && (href.startsWith('#t-') || href.startsWith('#t_'))) {
       const clsName = href.slice(1)
       return (
         <span className={`inline-block font-bold px-1.5 py-0.5 rounded text-xs bg-[#25292f] border border-[#363d47] shadow-sm ${clsName}`}>
-          {children}
-        </span>
-      )
-    }
-    if (href && (href.startsWith('#secret-trigger') || href.startsWith('#secret-popup'))) {
-      return (
-        <span className="text-[#70D8E0] font-bold">
           {children}
         </span>
       )
@@ -545,19 +570,29 @@ const CollapsibleDetailsCard: FC<{
   content: string
   defaultOpen?: boolean
 }> = ({ summary, content, defaultOpen = false }) => {
-  // 过滤 summary 中可能已由模型输出的 ▶ 或 ▼ 前缀
   const cleanSummary = summary.replace(/^[▶▼\s]+/, '').trim()
-  const isFirstInteractiveTarget = cleanSummary.includes('交互对象1') || cleanSummary === '交互对象'
-  const isInteractiveTarget = cleanSummary.includes('交互对象')
-  const [isOpen, setIsOpen] = useState(defaultOpen || isFirstInteractiveTarget)
+
+  // 识别是否属于重点交互对象 / NPC 档案卡片
+  const isInteractiveTarget =
+    cleanSummary.includes('交互') ||
+    cleanSummary.includes('NPC') ||
+    cleanSummary.includes('对象')
+
+  // 若为交互 NPC 卡片，转入专属结构化高保真渲染器
+  if (isInteractiveTarget) {
+    return (
+      <InteractiveNpcCard
+        summary={summary}
+        content={content}
+        defaultOpen={defaultOpen || cleanSummary.includes('交互对象1') || cleanSummary.includes('NPC档案') || cleanSummary.includes('交互')}
+      />
+    )
+  }
+
+  const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className={cn(
-      "my-3 rounded-xl border transition-all duration-200 overflow-hidden shadow-lg",
-      isInteractiveTarget
-        ? "border-purple-500/40 bg-[#161220] hover:border-purple-500/70 shadow-[0_0_15px_rgba(168,85,247,0.12)]"
-        : "border-[#343b44] bg-[#1a1d22] hover:border-[#70D8E0]/40"
-    )}>
+    <div className="my-3 rounded-xl border border-[#343b44] bg-[#1a1d22] hover:border-[#70D8E0]/40 overflow-hidden shadow-lg transition-all duration-200">
       {/* 折叠栏头部 */}
       <div
         role="button"
@@ -567,24 +602,13 @@ const CollapsibleDetailsCard: FC<{
           if (e.key === 'Enter' || e.key === ' ')
             setIsOpen(!isOpen)
         }}
-        className={cn(
-          "w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors border-b",
-          isInteractiveTarget
-            ? "bg-[#251b36] hover:bg-[#2d2141] border-purple-500/30"
-            : "bg-[#25292f] hover:bg-[#2c333f] border-[#363d47]"
-        )}
+        className="w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-3 cursor-pointer select-none bg-[#25292f] hover:bg-[#2c333f] border-b border-[#363d47] transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className={cn(
-            "text-xs transition-colors shrink-0 font-mono",
-            isInteractiveTarget ? "text-purple-300" : "text-[#70D8E0]"
-          )}>
+          <span className="text-xs transition-colors shrink-0 font-mono text-[#70D8E0]">
             {isOpen ? '▼' : '▶'}
           </span>
-          <span className={cn(
-            "font-bold text-sm truncate tracking-wide",
-            isInteractiveTarget ? "text-[#f3e8ff]" : "text-[#E6ECE8]"
-          )}>
+          <span className="font-bold text-sm truncate tracking-wide text-[#E6ECE8]">
             {cleanSummary}
           </span>
         </div>
@@ -595,12 +619,14 @@ const CollapsibleDetailsCard: FC<{
 
       {/* 折叠内容区域 */}
       {isOpen && (
-        <div className={cn(
-          "p-4 text-sm text-[#E6ECE8] space-y-2 border-t",
-          isInteractiveTarget ? "bg-[#14101d] border-purple-500/20" : "bg-[#16191f] border-[#343b44]"
-        )}>
+        <div className="p-4 text-sm text-[#E6ECE8] space-y-2 border-t bg-[#16191f] border-[#343b44]">
           {content ? (
-            <Streamdown components={storyDarkComponents}>{content}</Streamdown>
+            <Streamdown
+              allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
+              components={storyDarkComponents}
+            >
+              {cleanAndTransformContent(content)}
+            </Streamdown>
           ) : (
             <div className="text-[#849396] text-xs italic">暂无内容</div>
           )}
@@ -671,7 +697,12 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
   if (!thinkContent && segments.length === 1 && segments[0].type === 'text') {
     return (
       <div className={`streamdown-markdown ${className}`}>
-        <Streamdown components={storyDarkComponents}>{segments[0].content}</Streamdown>
+        <Streamdown
+          allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
+          components={storyDarkComponents}
+        >
+          {segments[0].content}
+        </Streamdown>
       </div>
     )
   }
@@ -695,7 +726,12 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
         }
         return (
           <div key={`text-${idx}`}>
-            <Streamdown components={storyDarkComponents}>{seg.content}</Streamdown>
+            <Streamdown
+              allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
+              components={storyDarkComponents}
+            >
+              {seg.content}
+            </Streamdown>
           </div>
         )
       })}
