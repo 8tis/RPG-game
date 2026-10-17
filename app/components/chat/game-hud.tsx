@@ -33,7 +33,7 @@ export const GameHud: React.FC<GameHudProps> = ({
   })
 
   const [mode, setMode] = useState('全新攻略者')
-  const [world, setWorld] = useState('01. 生化危机一 (蜂巢·激光通道)')
+  const [world, setWorld] = useState('《无限恐怖》 (主神空间轮回世界线)')
   const [importanceRank, setImportanceRank] = useState<'E' | 'D' | 'C' | 'B' | 'A' | 'S'>('E')
 
   // 监听并从对话历史的第一条降临指令中实时解析世界设定

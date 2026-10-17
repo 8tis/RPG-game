@@ -19,126 +19,26 @@ export interface Talent {
   isOrigin?: boolean
 }
 
-// 预设《无限恐怖》世界书六大经典主神位面
+// 预设小说位面：《无限恐怖》（整个小说作为一个完整的宏大位面，从小说序章启动推进）
 export const PRESET_WORLDS: WorldConfig[] = [
   {
     id: '01',
-    name: '生化危机一 (蜂巢·激光通道)',
-    desc: '蜂巢地下实验所已彻底沦陷，红后智能主脑锁死基地，复仇邪神与爬行者潜伏在黑暗通风管。中洲队轮回者初次降临激光通道前夕。',
-    sRanks: '激光防御矩阵主脑，爬行者母体，复仇邪神暴君，主神监视光球',
+    name: '《无限恐怖》 (主神空间轮回世界线)',
+    desc: '经典无限流开山巨作。故事从电脑屏幕上跳出的那一行动态光标开始：“想明白生命的意义吗？想真正的……活着吗？【YES】/【NO】”。点击确定后，意识被不可名状的力量抽离现实，在生化危机一正在疾驰的列车车厢中醒来，手腕浮现冰冷的主神黑表。从凡人求生、结识张杰郑吒、开启基因锁、回归主神大殿兑换造人，到异形、咒怨、神鬼传奇、死神来了、二十人团战与恶魔队决战，整部小说的史诗轮回世界线在此完整展开！',
+    sRanks: '主神光球本体，恶魔队复制体郑吒，楚轩大校，四阶高级/五阶圣人因果',
     identities: [
-      { title: '安布雷拉初级实习研究员', rank: 'E', items: '门禁B级磁卡，止痛药水 x 1' },
-      { title: '保护伞U.B.C.S佣兵斥候', rank: 'C', items: 'MP5战术冲锋枪，防毒面具' },
-      { title: '中洲队初次降临新人', rank: 'E', items: '一包香烟，便携式打火机' },
-      { title: '激光通道逃难生还者', rank: 'D', items: '备用主板钥匙，肾上腺素针剂' },
+      { title: '中洲队初次降临新人 (迷茫白领)', rank: 'E', items: '一包香烟，便携式打火机，半瓶矿泉水' },
+      { title: '警惕戒备的退役特种兵', rank: 'D', items: '多功能军用折叠刀，高热量压缩饼干' },
+      { title: '逻辑敏锐的刑侦推演者', rank: 'D', items: '备用平光眼镜，战术记事本与签字笔' },
+      { title: '觉醒前世残忆的重生轮回者', rank: 'C', items: '医用急救止痛喷雾 x 1，主神空间规则残简' },
     ],
     originTalents: [
-      { name: 'T病毒完美融合体', rank: 'SS', desc: '身体拥有无限变异自愈潜能，绝不丧尸化' },
-      { name: '激光通道规避预知', rank: 'S', desc: '对高能激光网切片的运动轨迹拥有提前0.5秒直觉预知' },
-      { name: '红后主脑逻辑后门', rank: 'S', desc: '掌握蜂巢主控系统初级管理员覆写指令' },
-      { name: '丧尸生化毒素免疫', rank: 'A', desc: '免受任何感染与生化病毒神经侵蚀' },
-      { name: '暴君压迫感耐受', rank: 'A', desc: '面临巨型生化Boss时精神绝不崩溃' },
-      { name: '战术换弹本能', rank: 'B', desc: '换弹速度提升200%，射击后坐力降低50%' },
-    ],
-  },
-  {
-    id: '02',
-    name: '异形一 (诺斯托罗莫号·幽闭深空)',
-    desc: '深空商业货运飞船接收到未知地外信号。抱脸虫破卵，成熟期异形在黑暗通风管中潜伏猎杀。飞船主脑“母亲”冷酷执行维兰德公司灭绝协议。',
-    sRanks: '异形皇后，生化人主教，飞船主脑“母亲”，终极成熟体异形',
-    identities: [
-      { title: '诺斯托罗莫号货船三副', rank: 'D', items: '船载应急钥匙卡，战术高光手电' },
-      { title: '维兰德-尤坦尼外勤技工', rank: 'C', items: '工业切割喷枪，多功能工程扳手' },
-      { title: '深空采矿外围杂工', rank: 'E', items: '压缩干粮袋，工装防尘风镜' },
-      { title: '商业飞船安保队员', rank: 'C', items: '穿甲战术霰弹枪，运动声纳探测仪' },
-    ],
-    originTalents: [
-      { name: '强酸血液绝对免疫', rank: 'SS', desc: '身体对异形高浓度分子强酸腐蚀完全免疫' },
-      { name: '异形幼体寄生排斥', rank: 'S', desc: '体内细胞排斥一切抱脸虫胚胎，绝不破胸' },
-      { name: '主脑母亲权限覆盖', rank: 'S', desc: '获知飞船深层管线密码与自爆程序管理权' },
-      { name: '幽闭声呐回响感知', rank: 'A', desc: '在无光密闭管道中能凭微弱震动锁定异形坐标' },
-      { name: '深空真空短时耐受', rank: 'A', desc: '在失压极寒环境中可维持行动力5分钟' },
-      { name: '管道狭窄极速穿梭', rank: 'B', desc: '在通风管道内攀爬移动速度提升100%' },
-    ],
-  },
-  {
-    id: '03',
-    name: '咒怨 (东京极凶之宅·无解死咒)',
-    desc: '东京都练马区极凶死宅。凡踏足此地沾染因果者，皆被怨灵伽椰子与佐伯俊雄永无止境地索魂索命。不可名状灵异死咒蔓延，被窝、镜面无处可逃。',
-    sRanks: '怨灵伽椰子真身，鬼童佐伯俊雄，地缚极恶因果场，无解死咒领域',
-    identities: [
-      { title: '警视厅搜查一课刑警', rank: 'D', items: '警用新南部M60左轮，绝密凶宅调查档案' },
-      { title: '练马区探灵高校生', rank: 'E', items: '智能手机（录音中），便携录音笔' },
-      { title: '远山警部外勤助手', rank: 'C', items: '破邪黑狗血瓶，折叠防暴棍' },
-      { title: '浅草寺除灵俗家弟子', rank: 'C', items: '开光百年桃木剑，朱砂破煞符咒 x 3' },
-    ],
-    originTalents: [
-      { name: '纯阳童子浩然血', rank: 'SS', desc: '全身血液如烈火灼热，怨灵阴爪触碰即被灼烧溃散' },
-      { name: '阴阳灵视看破幻障', rank: 'S', desc: '双眼洞穿怨灵伪装与空间鬼打墙，不入幻境' },
-      { name: '死兆因果律迟滞', rank: 'S', desc: '遭受伽椰子致命必死袭击时，强制延迟3秒生效' },
-      { name: '梵音净心精神屏障', rank: 'A', desc: '免疫怨灵尖叫与恐惧精神侵蚀，神志永不崩溃' },
-      { name: '玄门朱砂敕令手印', rank: 'A', desc: '指尖可凭空凌空画符，暂时定身幽魂鬼物' },
-      { name: '夺命狂奔本能', rank: 'B', desc: '遭遇灵异威慑时移动速度提升150%，绝不绊倒' },
-    ],
-  },
-  {
-    id: '04',
-    name: '神鬼传奇 (哈姆纳塔·亡者之城)',
-    desc: '撒哈拉沙漠深处的黄沙亡灵古城。沉睡三千年的大祭司伊莫顿复苏，埃及十灾降临，黑衣守墓卫队与盗墓者激战，中洲队与印洲队团战因果在此引爆！',
-    sRanks: '不死大祭司伊莫顿，蝎子王魔神化身，阿努比斯死神军团，亡灵圣经器灵',
-    identities: [
-      { title: '开罗开棺盗墓探险工兵', rank: 'E', items: '工兵铲，半壶烈酒，火把' },
-      { title: '黑衣法老守墓卫队后裔', rank: 'C', items: '阿拉伯弯刀，驯鹰哨，沙漠斗篷' },
-      { title: '大英博物馆古埃及学者', rank: 'D', items: '象形文字破译手册，古银质放大镜' },
-      { title: '开罗美军雇佣兵斥候', rank: 'C', items: '汤姆逊冲锋枪，自制雷管炸药包 x 2' },
-    ],
-    originTalents: [
-      { name: '亡灵黑经残卷通幽', rank: 'SS', desc: '可念诵古埃及死灵真言，役使木乃伊尸兵' },
-      { name: '黄沙风暴瞬移同调', rank: 'S', desc: '在沙漠与沙尘环境中可化身沙尘瞬移数十米' },
-      { name: '圣甲虫噬肉绝对抗性', rank: 'S', desc: '食人圣甲虫触体即避，免疫一切钻皮噬骨' },
-      { name: '古埃及象形咒文直感', rank: 'A', desc: '瞬息解读所有法老王陵墓机关与石碑密咒' },
-      { name: '炽热烈日与干渴耐受', rank: 'A', desc: '在极端沙漠环境中体力消耗降低80%' },
-      { name: '双持枪斗重弹连射', rank: 'B', desc: '双枪射击精准度与装填速度大幅提升' },
-    ],
-  },
-  {
-    id: '05',
-    name: '死神来了 (纽约死神名单·因果律死局)',
-    desc: '180号航班空难阴影笼罩纽约。死神的名单绝不落空，微观松动的螺丝、燃气泄漏、高压水迹与飞溅钢索，整个现实世界的物理法则都化作无形索命的杀人机关！',
-    sRanks: '无形死神因果律意志，死神黑名单收割场，现实概率修正场',
-    identities: [
-      { title: '180号航班预感生还者', rank: 'E', items: '登机牌存根，防风打火机' },
-      { title: 'FBI超自然事故调查探员', rank: 'C', items: 'FBI证件，格洛克17手枪，连环卷宗' },
-      { title: '纽约城市急救中心调度', rank: 'D', items: '对讲机，应急急救包，咖啡保温杯' },
-      { title: '布鲁克林殡仪馆验尸学徒', rank: 'D', items: '医用解剖刀，防腐香水小喷壶' },
-    ],
-    originTalents: [
-      { name: '死局因果连锁超维预知', rank: 'UR', desc: '遭遇死神连锁意外前3秒，视野中自动高亮死因物理链条' },
-      { name: '微观概率因果偏转', rank: 'SS', desc: '当周围发生致命物理意外时，强行让物体偏离致命轨迹' },
-      { name: '死神名单顺延逆命', rank: 'S', desc: '成功破解一次死神杀局后，获免死神追杀24小时' },
-      { name: '机械隐患本能洞察', rank: 'A', desc: '一眼洞悉周围燃气、电线、易滑重物等全部环境杀机' },
-      { name: '神经极限应激闪避', rank: 'A', desc: '面临高空坠物或爆炸飞片时做出非人极限规避' },
-      { name: '心肺复苏自愈本能', rank: 'B', desc: '心跳骤停时神经电流自动自激复跳' },
-    ],
-  },
-  {
-    id: '06',
-    name: '生化危机二 (浣熊市决战·恶魔队团战)',
-    desc: '保护伞浣熊市全面沦陷，核弹倒计时进入终结倒计时！主神判定难度激增，轮回最强【恶魔小队】复制体郑吒跨位面降临狙杀，二十人死斗团战，生化炼狱绝境！',
-    sRanks: '恶魔队复制体郑吒，追击者暴君终极变异体，保护伞核爆协议，恶魔队智者楚轩',
-    identities: [
-      { title: '中洲队二阶基因锁前哨', rank: 'C', items: '高斯手枪，一剂微型止痛喷雾' },
-      { title: '浣熊市S.T.A.R.S特警队员', rank: 'D', items: '战术霰弹枪，警用防弹背心' },
-      { title: '保护伞战术反击组内应', rank: 'C', items: 'EMP干扰手雷，保护伞加密撤离信标' },
-      { title: '浣熊市平民地下向导', rank: 'E', items: '地下排污管网地图，撬棍' },
-    ],
-    originTalents: [
-      { name: '基因锁潜能极速开启', rank: 'UR', desc: '濒死瞬间100%强制觉醒一阶并冲刺二阶基因锁' },
-      { name: '黑炎毁灭暴戾抗性', rank: 'SS', desc: '对高阶心灵之光与恶魔队黑炎拥有极高抗性' },
-      { name: '心灵之光·AT力场雏形', rank: 'S', desc: '意志化为微型护体屏障，可弹开小口径子弹与碎弹片' },
-      { name: 'G病毒共生吞噬本能', rank: 'S', desc: '可吸收生化怪异血肉快速愈合重度创伤' },
-      { name: '重火器战术入微压制', rank: 'A', desc: '操控重机枪或火箭炮时命中率与杀伤范围翻倍' },
-      { name: '战场团战敌意雷达', rank: 'B', desc: '在周围50米内感知敌对轮回者杀意与热源' },
+      { name: '基因锁超潜能体质', rank: 'SS', desc: '濒死或绝境生死压迫时，开启一阶基因锁概率提升300%' },
+      { name: '主神空间规则洞察', rank: 'S', desc: '初入轮回即看透主神手表奖惩因果，洞察隐藏支线收益' },
+      { name: '致命危险直觉预警', rank: 'S', desc: '面临突发致死杀局时心跳骤响，拥有提前0.5秒直觉预兆' },
+      { name: '极端绝境绝对理智', rank: 'A', desc: '面临血腥或不可名状威慑时精神壁垒极高，神智绝不恐慌崩溃' },
+      { name: '细胞自愈抗感染体质', rank: 'A', desc: '体内细胞抵抗生化侵蚀与异化，伤口感染坏死概率极低' },
+      { name: '战术换弹与射击本能', rank: 'B', desc: '枪械装填速度提升100%，近距离射击后坐力降低50%' },
     ],
   },
 ]
@@ -435,13 +335,13 @@ export const WorldAccessModal: React.FC<WorldAccessModalProps> = ({
     }
   }
 
-  // 格式化降临启动消息
+  // 格式化降临启动消息（从小说序章第一幕启动）
   const launchPayload = useMemo(() => {
     const activeW = isCustomWorld ? customWorld : currentWorld
-    return `【诸天万界·宿主降临初始化协议】
-1. 锚定位面：${activeW.id}.${activeW.name}
-   - 核心背景：${activeW.desc}
-   - 本位面S级存在：${activeW.sRanks}
+    return `【诸天万界·《无限恐怖》小说全景位面·宿主降临初始化协议】
+1. 锚定位面：${activeW.name}
+   - 核心主线：${activeW.desc}
+   - 位面巅峰战力：${activeW.sRanks}
 2. 宿主灵魂档案：
    - 姓名: ${profile.name} ｜ 性别: ${profile.gender} ｜ 年龄: ${profile.age}
    - 外貌特征: ${profile.appearance}
@@ -450,18 +350,23 @@ export const WorldAccessModal: React.FC<WorldAccessModalProps> = ({
    - 开局模式: ${mode}
 3. 躯壳适配数据：
    - 身份: ${selectedIdentity.title} [评级: ${selectedIdentity.rank}]
-   - 初始物资: ${selectedIdentity.items}
+   - 初始随身物资: ${selectedIdentity.items}
 4. 激活本源专属天赋（${selectedOriginTalents.length}/2）：
 ${selectedOriginTalents.length > 0 ? selectedOriginTalents.map(t => `   - [${t.rank}] ${t.name}: ${t.desc}`).join('\n') : '   - 无（未激活本源天赋）'}
 5. 激活异界与通用天赋（${selectedGeneralTalents.length}/3）：
+${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t.rank}] ${t.name}: ${t.desc}`).join('\n') : '   - 无（未激活通用天赋）'}
+
 【系统输出格式约定】：
 - 重要内容使用加粗（自动渲染为灵金色 #E3C362，只在有明确语义时出现）。
 - 致命危险与状态警报标明「警告：...」或「不可逆风险/认知污染」（自动渲染为警示大红色 #FF3B3B）。
-- 环境时间与位面坐标标明「星历/时间/坐标：...」（自动渲染为次要灰 #849396）。
-- 核心回路与系统宣告标明「舰载核心/系统提示：...」（自动渲染为科技青 #70D8E0）。
+- 环境时间与位面坐标标明「时间/地点/状态：...」（自动渲染为次要灰 #849396）。
+- 主神宣告与手环提示标明「主神提示/手环通告：...」（自动渲染为科技青 #70D8E0）。
 - 每一幕剧情结束处，必须以「你要如何回应？」列出 2~4 条具体的行动指令分支！
 
-系统初始化完毕，世界线锚定牢固。请立即为宿主开启第一幕降临剧情，严格基于上述身世、物资与天赋生成开局死局或破局遭遇！`
+【小说正文推进核心指令】：
+必须从《无限恐怖》小说的最开头第一幕正式启动推进！
+开局场景：宿主眼前的电脑屏幕突然跳出动态对话框：“想明白生命的意义吗？想真正的……活着吗？【YES】/【NO】”。宿主做出选择后，意识瞬间跨越现实维度，在生化危机一正在疾驰的列车车厢冰冷地板上醒来，手腕上浮现主神黑表与倒计时，耳边传来半醒轮回者与张杰冷酷吐出烟圈的声音。
+请严格基于上述身世、物资与天赋生成第一幕破局推进，拉开整个《无限恐怖》小说的轮回大幕！`
   }, [currentWorld, customWorld, isCustomWorld, profile, mode, selectedIdentity, selectedOriginTalents, selectedGeneralTalents])
 
   const handleExecuteLaunch = () => {
@@ -523,8 +428,8 @@ ${selectedOriginTalents.length > 0 ? selectedOriginTalents.map(t => `   - [${t.r
                 : 'text-[#849396] hover:text-[#E6ECE8] hover:bg-[#1a1d22]',
             )}
           >
-            <span>世界接入</span>
-            <span className="text-[10px] text-[#70D8E0] font-mono">(6选1)</span>
+            <span>小说位面</span>
+            <span className="text-[10px] text-[#70D8E0] font-mono">(无限恐怖)</span>
           </button>
           <button
             type="button"
@@ -659,54 +564,46 @@ ${selectedOriginTalents.length > 0 ? selectedOriginTalents.map(t => `   - [${t.r
             </div>
           )}
 
-          {/* TAB 3: 世界接入 (用户截图的核心功能区) */}
+          {/* TAB 3: 小说位面 (无限恐怖主线世界) */}
           {activeTab === 'world' && (
             <div className="space-y-5">
-              {/* 工具条：自定义世界 + 快速探测世界 */}
+              {/* 工具条：位面模式 */}
               <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-cyan-500/30">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-400/60 text-cyan-300 font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>唯一小说位面：已锚定《无限恐怖》全景主线</span>
+                  </span>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setIsCustomWorld(!isCustomWorld)}
                   className="px-3.5 py-1.5 rounded-lg border border-cyan-400/80 bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 font-bold text-xs tracking-wider shadow-sm flex items-center gap-1.5 transition-all"
                 >
                   <span>🛠️</span>
-                  <span>{isCustomWorld ? '切回预设位面' : '自定义世界（全能模式）'}</span>
+                  <span>{isCustomWorld ? '切回《无限恐怖》主线' : '自定义自建位面（自由模式）'}</span>
                 </button>
-
-                <div className="flex items-center gap-1 overflow-x-auto max-w-full py-1">
-                  <span className="text-xs text-cyan-300 font-bold mr-1 shrink-0">🎲 探测位面:</span>
-                  {PRESET_WORLDS.map((w, idx) => (
-                    <button
-                      key={w.id}
-                      type="button"
-                      onClick={() => handleSelectWorld(idx)}
-                      className={cn(
-                        'px-2 py-1 rounded text-xs font-semibold shrink-0 transition-all',
-                        currentWorldIndex === idx && !isCustomWorld
-                          ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
-                          : 'bg-[#081226] text-gray-200 hover:text-white hover:border-cyan-400/50 border border-cyan-500/30',
-                      )}
-                    >
-                      {w.id}. {w.name.split(' ')[0]}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               {/* Step 1: 位面展示卡 */}
               <div className="p-4 rounded-xl border border-cyan-500/60 bg-[#081226]/90 shadow-[0_0_15px_rgba(6,182,212,0.15)] relative">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-xl sm:text-2xl font-black text-cyan-400 font-mono tracking-wide">
-                    {isCustomWorld ? `${customWorld.id}. ${customWorld.name}` : `${currentWorld.id}. ${currentWorld.name}`}
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <h2 className="text-xl sm:text-2xl font-black text-cyan-400 font-mono tracking-wide flex items-center gap-2">
+                    <span>📖 {isCustomWorld ? customWorld.name : currentWorld.name}</span>
                   </h2>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-cyan-950 border border-cyan-400/50 text-cyan-300 font-sans font-bold flex items-center gap-1 shadow-sm">
+                    <span>⚡</span>
+                    <span>从小说开头推进</span>
+                  </span>
                 </div>
 
-                <p className="text-xs sm:text-sm text-gray-100 font-normal leading-relaxed mb-2.5">
+                <p className="text-xs sm:text-sm text-gray-100 font-normal leading-relaxed mb-3">
                   {isCustomWorld ? customWorld.desc : currentWorld.desc}
                 </p>
 
-                <div className="text-xs font-semibold">
-                  <span className="text-rose-400 font-black">S级存在：</span>
+                <div className="text-xs font-semibold flex flex-wrap items-center gap-2 pt-2 border-t border-cyan-500/20">
+                  <span className="text-rose-400 font-black">巅峰战力与终极因果：</span>
                   <span className="text-rose-200 font-medium">{isCustomWorld ? customWorld.sRanks : currentWorld.sRanks}</span>
                 </div>
               </div>
