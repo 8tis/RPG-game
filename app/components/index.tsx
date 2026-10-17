@@ -22,6 +22,9 @@ import AppUnavailable from '@/app/components/app-unavailable'
 import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
 import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
+import { useAuth } from '@/context/auth-context'
+import AuthModal from '@/app/components/auth/auth-modal'
+import PointsLogModal from '@/app/components/auth/points-log-modal'
 
 export interface IMainProps {
   params: any
@@ -32,6 +35,8 @@ const Main: FC<IMainProps> = () => {
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
   const hasSetAppConfig = APP_ID && API_KEY
+
+  const { user, isLoggedIn, openAuthModal, deductUserPoints } = useAuth()
 
   /*
   * app info
@@ -302,6 +307,16 @@ const Main: FC<IMainProps> = () => {
   }
 
   const checkCanSend = () => {
+    if (!isLoggedIn || !user) {
+      notify({ type: 'warning', message: '请先登入轮回者身份以开启位面推演！' })
+      openAuthModal('login')
+      return false
+    }
+    if (user.points <= 0) {
+      notify({ type: 'error', message: '【主神警报】您的轮回积分已耗尽！请联系主神空间管理员进行调配。' })
+      return false
+    }
+
     if (currConversationId !== '-1') { return true }
 
     if (!currInputs || !promptConfig?.prompt_variables) { return true }
@@ -359,10 +374,20 @@ const Main: FC<IMainProps> = () => {
   }
 
   const handleSend = async (message: string, files?: VisionFile[], customInputs?: Record<string, any>) => {
+    if (!isLoggedIn || !user) {
+      notify({ type: 'warning', message: '请先登入轮回者身份以开启位面推演！' })
+      openAuthModal('login')
+      return
+    }
+    if (user.points <= 0) {
+      notify({ type: 'error', message: '【主神警报】您的轮回积分已耗尽！请联系主神空间管理员进行调配。' })
+      return
+    }
     if (isResponding) {
       notify({ type: 'info', message: t('app.errorMessage.waitForResponse') })
       return
     }
+    let turnTokens = 0
     const toServerInputs: Record<string, any> = { ...(customInputs || {}) }
     if (currInputs) {
       Object.keys(currInputs).forEach((key) => {
@@ -467,6 +492,17 @@ const Main: FC<IMainProps> = () => {
         setRespondingFalse()
         if (hasError) { return }
 
+        // Deduct points based on tokens consumed (1000 Token = 1 轮回积分)
+        const finalTokens = turnTokens > 0
+          ? turnTokens
+          : Math.max(50, Math.ceil((message.length + (responseItem.content?.length || 0)) * 1.5))
+
+        try {
+          await deductUserPoints(finalTokens, `位面推演消耗 (${finalTokens} Token)`)
+        } catch (e) {
+          // ignore deduction error
+        }
+
         if (getConversationIdChangeBecauseOfNew()) {
           try {
             const { data: allConversations }: any = await fetchConversations()
@@ -534,7 +570,15 @@ const Main: FC<IMainProps> = () => {
           questionItem,
         })
       },
-      onMessageEnd: (messageEnd) => {
+      onMessageEnd: (messageEnd: any) => {
+        const msgTokens = messageEnd?.metadata?.usage?.total_tokens
+          || (((messageEnd?.metadata?.usage?.prompt_tokens || 0) + (messageEnd?.metadata?.usage?.completion_tokens || 0)))
+          || messageEnd?.execution_metadata?.total_tokens
+          || 0
+        if (msgTokens > turnTokens) {
+          turnTokens = msgTokens
+        }
+
         if (messageEnd.metadata?.annotation_reply) {
           responseItem.id = messageEnd.id
           responseItem.annotation = ({
@@ -718,6 +762,8 @@ const Main: FC<IMainProps> = () => {
           )}
         </div>
       </div>
+      <AuthModal />
+      <PointsLogModal />
     </div>
   )
 }
