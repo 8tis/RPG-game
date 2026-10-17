@@ -352,12 +352,12 @@ const Main: FC<IMainProps> = () => {
     }
   }
 
-  const handleSend = async (message: string, files?: VisionFile[]) => {
+  const handleSend = async (message: string, files?: VisionFile[], customInputs?: Record<string, any>) => {
     if (isResponding) {
       notify({ type: 'info', message: t('app.errorMessage.waitForResponse') })
       return
     }
-    const toServerInputs: Record<string, any> = {}
+    const toServerInputs: Record<string, any> = { ...(customInputs || {}) }
     if (currInputs) {
       Object.keys(currInputs).forEach((key) => {
         const value = currInputs[key]

@@ -34,7 +34,7 @@ export interface IChatProps {
   isHideSendInput?: boolean
   onFeedback?: FeedbackFunc
   checkCanSend?: () => boolean
-  onSend?: (message: string, files: VisionFile[]) => void
+  onSend?: (message: string, files: VisionFile[], customInputs?: Record<string, any>) => void
   useCurrentUserAvatar?: boolean
   isResponding?: boolean
   controlClearQuery?: number
@@ -187,7 +187,7 @@ const Chat: FC<IChatProps> = ({
           isOpen={true}
           isInline={true}
           onClose={() => {}}
-          onLaunch={(msg) => onSend(msg, [])}
+          onLaunch={(msg, inputs) => onSend(msg, [], inputs)}
         />
       </div>
     )
@@ -196,7 +196,7 @@ const Chat: FC<IChatProps> = ({
   return (
     <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full')}>
       {/* 顶部 Game HUD 游戏状态面板 */}
-      <GameHud chatList={chatList} onStartGame={(msg) => onSend(msg, [])} />
+      <GameHud chatList={chatList} onStartGame={(msg, inputs) => onSend(msg, [], inputs)} />
 
       {/* Chat List */}
       <div className="h-full space-y-[30px]">
