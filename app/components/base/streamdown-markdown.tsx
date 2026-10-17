@@ -29,39 +29,39 @@ function cleanAndTransformContent(raw: string): string {
   text = text.replace(/`\s*(<\/?(?:span|div|details|summary|p|b|i)[^>]*>)\s*`/gi, '$1')
   text = text.replace(/`\s*(\[[^\]]+\]\(#t-[a-z0-9_-]+\))\s*`/gi, '$1')
 
-  // 2. 将 NPC 观测判定块（<div class="observe-wrap-v2">...</div> 或 observe-wrap）转换为科幻引用判定卡片
-  text = text.replace(/<div(?:\s+class=['"]?observe-wrap[^'">]*['"]?)?>([\s\S]*?)<\/div>/gi, (_, inner) => {
-    let trigger = '🔍 观测判定通过'
+  // 2. 将 NPC 观测判定块转换为 #classified-intel 交互卡片链接
+  text = text.replace(/<div(?:\s+class=['"]?observe-wrap[^'">]*['"]?)?>([\s\S]*?)(?:<\/div>|$)/gi, (_, inner) => {
+    let trigger = '🔍 观测判定通过（点击查看详情）'
     let detail = ''
 
     // A. 匹配 HTML spans 结构
-    const triggerMatch = inner.match(/<span(?:\s+class=['"]?secret-trigger[^'">]*['"]?)?>([\s\S]*?)<\/span>/i)
-    const popupMatch = inner.match(/<span(?:\s+class=['"]?secret-popup[^'">]*['"]?)?>([\s\S]*?)<\/span>/i)
+    const triggerMatch = inner.match(/<span(?:\s+class=['"]?secret-trigger[^'">]*['"]?)?>([\s\S]*?)(?:<\/span>|$)/i)
+    const popupMatch = inner.match(/<span(?:\s+class=['"]?secret-popup[^'">]*['"]?)?>([\s\S]*?)(?:<\/span>|$)/i)
 
-    if (triggerMatch && popupMatch) {
+    if (triggerMatch) {
       trigger = triggerMatch[1].replace(/<[^>]+>/g, '').trim()
+    }
+    if (popupMatch) {
       detail = popupMatch[1].replace(/<[^>]+>/g, '').trim()
     }
-    else {
-      // B. 匹配可能已被部分转义的锚点格式 [trigger](#secret-trigger...) [detail](#secret-popup...)
-      const trigPart = inner.split(/\(?#secret-trigger[^\)]*\)?/i)[0]
-      const afterTrig = inner.split(/\(?#secret-trigger[^\)]*\)?/i)[1] || ''
-      const popupPart = afterTrig.split(/\(?#secret-popup[^\)]*\)?/i)[0]
-
-      if (afterTrig) {
-        trigger = trigPart.replace(/^[\[\s]+/, '').replace(/[\]\s]+$/, '').trim()
-        detail = popupPart.replace(/^[\[\s]+/, '').replace(/[\]\s]+$/, '').trim()
-      }
-      else {
-        detail = inner.replace(/<[^>]+>/g, '').trim()
-      }
+    else if (!triggerMatch) {
+      // 容错匹配：如果内部没有标准 span，提取纯文本
+      detail = inner.replace(/<[^>]+>/g, '').trim()
     }
 
-    // 规范化 trigger，保留纯净文本
-    const cleanTrig = '🔍 ' + trigger.replace(/^[\s\[]*🔍\s*/, '').replace(/[\[\]]/g, '').trim()
-    const cleanDetail = detail.replace(/^[\[\s]+|[\]\s]+$/g, '').trim()
+    if (!trigger) trigger = '🔍 观测判定通过（点击查看详情）'
+    if (!trigger.includes('🔍')) trigger = `🔍 ${trigger}`
+    if (!detail) detail = '（正在解析深层因果观测情报...）'
 
-    return `\n\n> 👁️ **[${cleanTrig}]**  \n> ${cleanDetail}\n\n`
+    const encodedDetail = encodeURIComponent(detail)
+    return `\n\n[${trigger}](#classified-intel:${encodedDetail})\n\n`
+  })
+
+  // 2.1 纯文本容错：若模型以裸文本输出 🔍 观测判定通过... 格式
+  text = text.replace(/(?:【隐藏信息】\s*)?(?:🔍\s*)?观测判定通过[（(](?:点击查看详情)?[）)]\s*[：:]\s*([^\n<]+)/gi, (_, intel) => {
+    const trigger = '🔍 观测判定通过（点击查看详情）'
+    const encodedDetail = encodeURIComponent(intel.trim())
+    return `\n\n【隐藏信息】\n\n[${trigger}](#classified-intel:${encodedDetail})\n\n`
   })
 
   // 清除任何游离在外的 secret-trigger / secret-popup 锚点标签
@@ -181,6 +181,64 @@ const handleOptionClick = (text: string) => {
   }
 }
 
+// 🔍 交互对象深层情报卡片组件 (CLASSIFIED_INTEL - 还原原版视觉逻辑)
+const ClassifiedIntel: FC<{ trigger: string; detail: string }> = ({ trigger, detail }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="my-3 select-none">
+      {/* 观测判定触发按钮 */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border select-none",
+          isOpen
+            ? "bg-[#b000e8] text-white border-[#b000e8] shadow-[0_0_15px_rgba(176,0,232,0.45)]"
+            : "bg-purple-500/15 hover:bg-purple-500/25 active:scale-95 border-purple-500/40 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+        )}
+      >
+        <span className="text-sm">🔍</span>
+        <span>{trigger.replace(/^🔍\s*/, '')}</span>
+        <span className="text-[10px] font-mono transition-transform duration-200">
+          {isOpen ? '▲' : '▼'}
+        </span>
+      </button>
+
+      {/* 展开的深层机密情报卡片 */}
+      {isOpen && (
+        <div
+          className="mt-2.5 max-w-xl p-[2px] bg-[#b000e8] shadow-[0_0_20px_rgba(176,0,232,0.35)] animate-fade-in transition-all"
+          style={{
+            clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%)',
+            borderRadius: '10px 10px 0 10px',
+          }}
+        >
+          <div
+            className="h-full w-full overflow-hidden"
+            style={{
+              clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%)',
+              borderRadius: '8px 8px 0 8px',
+            }}
+          >
+            {/* 霓虹紫标头 */}
+            <div className="bg-[#b000e8] text-white font-mono font-black text-xs py-1.5 tracking-widest text-center shadow-sm select-none flex items-center justify-center gap-2">
+              <span className="text-[10px] text-fuchsia-200">◆</span>
+              <span>CLASSIFIED_INTEL</span>
+              <span className="text-[10px] text-fuchsia-200">◆</span>
+            </div>
+
+            {/* 机密内容主体 */}
+            <div className="p-4 bg-[#1b1424] text-xs sm:text-sm text-purple-100 font-medium leading-relaxed whitespace-pre-wrap">
+              {detail}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // 诸天万界·科幻修仙风格专属暗色语义渲染组件
 const storyDarkComponents = {
   p: ({ children, ...props }: any) => {
@@ -247,7 +305,44 @@ const storyDarkComponents = {
       )
     }
 
-    // 7. 规则说明落款（重要内容使用灵金，危险与警告使用大红色...）
+    // 7. 词条胶囊行识别（当词条作为独立段落输出时）
+    const traitMatch = text.match(/^[▶▼\s]*\[\s*([蓝金紫绿红白橙灰黑])\s*\]([\s\S]*)/)
+    if (traitMatch) {
+      const colorChar = traitMatch[1]
+      const rest = traitMatch[2]
+
+      const colorMap: Record<string, { bg: string; border: string; text: string; badge: string; shadow: string }> = {
+        '蓝': { bg: 'bg-cyan-500/10', border: 'border-cyan-500/40', text: 'text-cyan-200', badge: 'bg-cyan-500/25 text-cyan-300 border-cyan-400/50', shadow: 'shadow-[0_0_10px_rgba(6,182,212,0.15)]' },
+        '金': { bg: 'bg-amber-500/10', border: 'border-amber-500/40', text: 'text-amber-200', badge: 'bg-amber-500/25 text-amber-300 border-amber-400/50', shadow: 'shadow-[0_0_10px_rgba(245,158,11,0.15)]' },
+        '紫': { bg: 'bg-purple-500/10', border: 'border-purple-500/40', text: 'text-purple-200', badge: 'bg-purple-500/25 text-purple-300 border-purple-400/50', shadow: 'shadow-[0_0_10px_rgba(168,85,247,0.15)]' },
+        '绿': { bg: 'bg-emerald-500/10', border: 'border-emerald-500/40', text: 'text-emerald-200', badge: 'bg-emerald-500/25 text-emerald-300 border-emerald-400/50', shadow: 'shadow-[0_0_10px_rgba(16,185,129,0.15)]' },
+        '红': { bg: 'bg-rose-500/10', border: 'border-rose-500/40', text: 'text-rose-200', badge: 'bg-rose-500/25 text-rose-300 border-rose-400/50', shadow: 'shadow-[0_0_10px_rgba(244,63,94,0.15)]' },
+      }
+      const style = colorMap[colorChar] || colorMap['蓝']
+
+      return (
+        <div className={`my-2 p-2.5 rounded-xl border ${style.bg} ${style.border} ${style.shadow} flex items-start gap-2 text-xs sm:text-sm transition-all`}>
+          <span className="text-xs text-[#70D8E0] mt-0.5">▶</span>
+          <span className={`px-2 py-0.5 rounded-md font-bold text-xs border ${style.badge} shrink-0`}>
+            [ {colorChar} ]
+          </span>
+          <span className={`${style.text} leading-relaxed font-medium`}>
+            {rest.replace(/^[\s：:]+/, '')}
+          </span>
+        </div>
+      )
+    }
+
+    // 8. 交互对象与状态栏属性标签：【基础】、【外貌】、【能力】、【定位】、【关系】、【状态】、【隐藏信息】
+    if (/^【(基础|外貌|能力|定位|关系|状态|隐藏信息|词条|基础信息|随身背包|生命与能量|主线任务|支线\/隐藏|系统商店|当前世界|剧情偏移度)】/.test(text)) {
+      return (
+        <p className="text-xs sm:text-sm text-[#d4dde2] leading-relaxed my-2 font-sans" {...props}>
+          {children}
+        </p>
+      )
+    }
+
+    // 9. 规则说明落款（重要内容使用灵金，危险与警告使用大红色...）
     if (text.includes('重要内容使用灵金') || text.includes('危险与警告使用大红色')) {
       return (
         <p className="text-[#849396] text-xs leading-relaxed mt-4 pt-2.5 border-t border-[#343b44]/60 italic" {...props}>
@@ -298,6 +393,35 @@ const storyDarkComponents = {
   ),
   li: ({ children, ...props }: any) => {
     const rawText = extractRawText(children).trim()
+
+    // 词条胶囊行识别：如 [ 蓝 ] 勤奋写手：拥有远超常人的码字速度和毅力。
+    const traitMatch = rawText.match(/^[▶▼\s]*\[\s*([蓝金紫绿红白橙灰黑])\s*\]([\s\S]*)/)
+    if (traitMatch) {
+      const colorChar = traitMatch[1]
+      const rest = traitMatch[2]
+
+      const colorMap: Record<string, { bg: string; border: string; text: string; badge: string; shadow: string }> = {
+        '蓝': { bg: 'bg-cyan-500/10', border: 'border-cyan-500/40', text: 'text-cyan-200', badge: 'bg-cyan-500/25 text-cyan-300 border-cyan-400/50', shadow: 'shadow-[0_0_10px_rgba(6,182,212,0.15)]' },
+        '金': { bg: 'bg-amber-500/10', border: 'border-amber-500/40', text: 'text-amber-200', badge: 'bg-amber-500/25 text-amber-300 border-amber-400/50', shadow: 'shadow-[0_0_10px_rgba(245,158,11,0.15)]' },
+        '紫': { bg: 'bg-purple-500/10', border: 'border-purple-500/40', text: 'text-purple-200', badge: 'bg-purple-500/25 text-purple-300 border-purple-400/50', shadow: 'shadow-[0_0_10px_rgba(168,85,247,0.15)]' },
+        '绿': { bg: 'bg-emerald-500/10', border: 'border-emerald-500/40', text: 'text-emerald-200', badge: 'bg-emerald-500/25 text-emerald-300 border-emerald-400/50', shadow: 'shadow-[0_0_10px_rgba(16,185,129,0.15)]' },
+        '红': { bg: 'bg-rose-500/10', border: 'border-rose-500/40', text: 'text-rose-200', badge: 'bg-rose-500/25 text-rose-300 border-rose-400/50', shadow: 'shadow-[0_0_10px_rgba(244,63,94,0.15)]' },
+      }
+      const style = colorMap[colorChar] || colorMap['蓝']
+
+      return (
+        <li className={`my-2 p-2.5 rounded-xl border ${style.bg} ${style.border} ${style.shadow} flex items-start gap-2 text-xs sm:text-sm list-none transition-all`}>
+          <span className="text-xs text-[#70D8E0] mt-0.5">▶</span>
+          <span className={`px-2 py-0.5 rounded-md font-bold text-xs border ${style.badge} shrink-0`}>
+            [ {colorChar} ]
+          </span>
+          <span className={`${style.text} leading-relaxed font-medium`}>
+            {rest.replace(/^[\s：:]+/, '')}
+          </span>
+        </li>
+      )
+    }
+
     return (
       <li
         onClick={() => handleOptionClick(rawText)}
@@ -380,8 +504,18 @@ const storyDarkComponents = {
   pre: ({ children, ...props }: any) => (
     <pre className="bg-[#13161c] text-[#70D8E0] p-3.5 rounded-xl border border-[#343b44] text-xs font-mono overflow-x-auto my-2.5" {...props}>{children}</pre>
   ),
-  hr: () => <hr className="border-[#343b44] my-3.5" />,
   a: ({ href, children, ...props }: any) => {
+    if (href && href.startsWith('#classified-intel:')) {
+      const encoded = href.replace('#classified-intel:', '')
+      let detail = ''
+      try {
+        detail = decodeURIComponent(encoded)
+      } catch {
+        detail = encoded
+      }
+      const trigger = extractRawText(children) || '🔍 观测判定通过（点击查看详情）'
+      return <ClassifiedIntel trigger={trigger} detail={detail} />
+    }
     if (href && (href.startsWith('#t-') || href.startsWith('#t_'))) {
       const clsName = href.slice(1)
       return (
@@ -405,16 +539,25 @@ const storyDarkComponents = {
   },
 }
 
-// Custom Collapsible Details Card (系统推演 / 状态栏折叠卡)
+// Custom Collapsible Details Card (系统推演 / 状态栏折叠卡 / 交互对象)
 const CollapsibleDetailsCard: FC<{
   summary: string
   content: string
   defaultOpen?: boolean
 }> = ({ summary, content, defaultOpen = false }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen)
+  // 过滤 summary 中可能已由模型输出的 ▶ 或 ▼ 前缀
+  const cleanSummary = summary.replace(/^[▶▼\s]+/, '').trim()
+  const isFirstInteractiveTarget = cleanSummary.includes('交互对象1') || cleanSummary === '交互对象'
+  const isInteractiveTarget = cleanSummary.includes('交互对象')
+  const [isOpen, setIsOpen] = useState(defaultOpen || isFirstInteractiveTarget)
 
   return (
-    <div className="my-3 rounded-xl border border-[#343b44] bg-[#1a1d22] text-[#E6ECE8] shadow-xl overflow-hidden transition-all duration-200 hover:border-[#70D8E0]/40">
+    <div className={cn(
+      "my-3 rounded-xl border transition-all duration-200 overflow-hidden shadow-lg",
+      isInteractiveTarget
+        ? "border-purple-500/40 bg-[#161220] hover:border-purple-500/70 shadow-[0_0_15px_rgba(168,85,247,0.12)]"
+        : "border-[#343b44] bg-[#1a1d22] hover:border-[#70D8E0]/40"
+    )}>
       {/* 折叠栏头部 */}
       <div
         role="button"
@@ -424,25 +567,38 @@ const CollapsibleDetailsCard: FC<{
           if (e.key === 'Enter' || e.key === ' ')
             setIsOpen(!isOpen)
         }}
-        className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 bg-[#25292f] hover:bg-[#2c333f] cursor-pointer select-none transition-colors border-b border-[#363d47]"
+        className={cn(
+          "w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors border-b",
+          isInteractiveTarget
+            ? "bg-[#251b36] hover:bg-[#2d2141] border-purple-500/30"
+            : "bg-[#25292f] hover:bg-[#2c333f] border-[#363d47]"
+        )}
       >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#88CBAA] shadow-[0_0_8px_#88CBAA] shrink-0" />
-          <span className="font-bold text-sm text-[#70D8E0] truncate tracking-wide">
-            {summary}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={cn(
+            "text-xs transition-colors shrink-0 font-mono",
+            isInteractiveTarget ? "text-purple-300" : "text-[#70D8E0]"
+          )}>
+            {isOpen ? '▼' : '▶'}
+          </span>
+          <span className={cn(
+            "font-bold text-sm truncate tracking-wide",
+            isInteractiveTarget ? "text-[#f3e8ff]" : "text-[#E6ECE8]"
+          )}>
+            {cleanSummary}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0 text-xs text-[#849396] font-bold bg-[#1a1d22] px-2.5 py-1 rounded-md border border-[#363d47] shadow-sm">
-          <span>{isOpen ? '点击收起' : '点击展开'}</span>
-          <span className={cn('transform transition-transform duration-200 text-[10px]', isOpen ? 'rotate-180' : 'rotate-0')}>
-            ▼
-          </span>
+        <div className="flex items-center gap-1.5 shrink-0 text-xs text-[#849396] font-medium bg-[#13151b] px-2 py-0.5 rounded-md border border-[#343b44]/60">
+          <span>{isOpen ? '收起' : '展开'}</span>
         </div>
       </div>
 
       {/* 折叠内容区域 */}
       {isOpen && (
-        <div className="p-4 bg-[#16191f] text-sm text-[#E6ECE8] space-y-2 border-t border-[#343b44]">
+        <div className={cn(
+          "p-4 text-sm text-[#E6ECE8] space-y-2 border-t",
+          isInteractiveTarget ? "bg-[#14101d] border-purple-500/20" : "bg-[#16191f] border-[#343b44]"
+        )}>
           {content ? (
             <Streamdown components={storyDarkComponents}>{content}</Streamdown>
           ) : (
