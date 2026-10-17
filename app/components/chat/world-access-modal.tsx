@@ -143,25 +143,158 @@ export const PRESET_WORLDS: WorldConfig[] = [
   },
 ]
 
-// 全局通用与异界天赋库
+// 全局通用与异界天赋库（70项主神空间与诸天经典专长强化）
 export const GLOBAL_TALENTS: Talent[] = [
+  // --- UR 级（超维至尊 · 0.08% 概率极罕见）---
   { name: '虚数空间降临', rank: 'UR', desc: '可从虚数位面抽取无尽物质与反物质概念武器' },
   { name: '超低消耗无限重生', rank: 'UR', desc: '宿主核心权能：死后推演万千死局破局生路' },
+  { name: '基因锁四阶高·不灭圣光', rank: 'UR', desc: '微观掌控量子与能量循环，超脱生死几近不灭' },
+
+  // --- SSS 级（极品因果 · 0.32% 概率）---
   { name: '因果律逆命修正', rank: 'SSS', desc: '每场副本可强制逆转一次既定死亡因果' },
-  { name: '基因锁四阶高·入微掌控', rank: 'SSS', desc: '微观分子级掌控自身肉体与能量循环，几近不灭之身' },
-  { name: '心灵之光·AT绝对领域', rank: 'SS', desc: '意志化为绝对防御屏障，破灭万物法则' },
-  { name: '纳米机械虫集群寄生', rank: 'SS', desc: '伤势瞬间以纳米重组愈合，百毒不侵' },
-  { name: '诛仙剑意残片', rank: 'SS', desc: '攻击附带无上杀伐道果，斩断超凡护盾' },
-  { name: '绝对冷酷心智', rank: 'S', desc: '绝对免疫B级及以下精神威慑与恐惧幻象，理智权衡因果' },
+  { name: '基因锁四阶初·神魔变', rank: 'SSS', desc: '唤醒古生物神魔基因，局部神魔化破灭一切' },
+  { name: '入微微观掌控', rank: 'SSS', desc: '微米级操控全身细胞与能量流转，防御物理崩解' },
+  { name: '混沌金丹真元', rank: 'SSS', desc: '仙道混元真力，万法不侵，法术威力增幅300%' },
+  { name: '心灵之光·红莲业火', rank: 'SSS', desc: '意志具象为焚灭灵魂的无上红莲，净化万物' },
+
+  // --- SS 级（史诗强化 · 1.6% 概率）---
+  { name: '心灵之光·AT绝对领域', rank: 'SS', desc: '意志化为绝对防御屏障，弹开超凡法则轰击' },
+  { name: '纳米机械虫集群寄生', rank: 'SS', desc: '伤势瞬间以纳米虫集群重组自愈，百毒不侵' },
+  { name: '诛仙剑意残片', rank: 'SS', desc: '攻击附带无上杀伐道果，斩断一切概念护盾' },
+  { name: '直死之魔眼残缺', rank: 'SS', desc: '视界中浮现万物死线，击中死线即致坏死' },
+  { name: '九转还魂灵光', rank: 'SS', desc: '濒死遭受致命伤时自动触发神光重铸残躯' },
+  { name: '葵花宝典·天人化生', rank: 'SS', desc: '速度突破物理音障极限，针芒气劲破尽百兵' },
+  { name: '大衍凶刀之孤光', rank: 'SS', desc: '绝世魔刀杀意，刀气掠过剥离敌方防御本质' },
+  { name: '虚空折跃直感', rank: 'SS', desc: '濒死瞬间短距离折跃脱离包围圈' },
+
+  // --- S 级（稀有突破 · 6% 概率）---
+  { name: '绝对冷酷心智', rank: 'S', desc: '免疫B级及以下精神威慑与恐惧幻象，理智权衡因果' },
   { name: '基因锁一阶觉醒', rank: 'S', desc: '濒死触发远古战斗本能，思维感知加速300%' },
-  { name: '危险直觉雷达', rank: 'S', desc: '在遭遇致命危机前10秒触发心跳警报' },
+  { name: '危险直觉雷达', rank: 'S', desc: '在遭遇致命危机前10秒触发心跳预警' },
+  { name: '脑域超频运算', rank: 'S', desc: '极速推演战场百步局势，模仿学习敌方招式' },
+  { name: '金刚不坏之躯', rank: 'S', desc: '肉身骨骼坚如佛门精金，钝击与利刃大幅豁免' },
+  { name: '修真筑基灵体', rank: 'S', desc: '经脉通达灵力流转不息，御使飞剑高阶符箓' },
+  { name: '念动力超频爆发', rank: 'S', desc: '隔空移物爆发力提升500%，可悬停高速弹丸' },
+  { name: '血族伯爵初拥', rank: 'S', desc: '拥有夜视极速与蝙蝠化遁逃，汲血迅速恢复生命' },
+  { name: '狼人狂暴本能', rank: 'S', desc: '受伤越重力量体魄增幅越高，肌肉撕裂抗性翻倍' },
+  { name: '高斯狙击精准', rank: 'S', desc: '操控狙击枪支射程翻倍，锁定百米外微小死穴' },
+  { name: '暴君G病毒共生', rank: 'S', desc: '肉身具备极强异变适应力，断肢数小时内再生' },
+  { name: '飞雷神印记感知', rank: 'S', desc: '对空间标记拥有微观敏锐感，规避瞬移偷袭' },
+
+  // --- A 级（精锐超凡潜能 · 20% 概率）---
   { name: '快速神经反射', rank: 'A', desc: '身体神经反应速度超越常人极限两倍' },
-  { name: '钢铁骨骼强化', rank: 'A', desc: '骨骼密度堪比钛合金，抗冲击与钝击提升' },
-  { name: '潜伏行者潜行', rank: 'A', desc: '移动声响归零，在阴影中呼吸隐匿' },
+  { name: '钢铁骨骼强化', rank: 'A', desc: '骨骼密度堪比钛合金，抗冲击与坠落耐受' },
+  { name: '潜伏行者潜行', rank: 'A', desc: '移动声响归零，在阴影中呼吸隐匿气息' },
+  { name: '高斯弹道校准', rank: 'A', desc: '射击抗风偏干扰，远距离射击后坐力降低70%' },
+  { name: '超感热成像感知', rank: 'A', desc: '自带生物热源成像视界，无视烟雾视线遮蔽' },
+  { name: '肌肉纤维重组', rank: 'A', desc: '瞬间爆发肌力翻倍，可徒手掰弯合金防盗门' },
+  { name: '枪斗术初窥门径', rank: 'A', desc: '近身格斗与射击无缝融合，规避射击死角' },
+  { name: '内力周天运转', rank: 'A', desc: '体内生成护体真气，拳脚兵刃附带内劲暗伤' },
+  { name: '电磁脉冲硬化', rank: 'A', desc: '随身电子仪器与神经芯片免疫EMP电磁瘫痪' },
+  { name: '疼痛感知钝化', rank: 'A', desc: '受到重伤时不产生休克与紊乱，维持清醒战斗' },
+  { name: '自愈因子加速', rank: 'A', desc: '伤口止血凝固速度提升300%，避免失血休克' },
+  { name: '坚毅精神壁垒', rank: 'A', desc: '对催眠、暗示与初阶精神侵蚀具有高度抗性' },
+  { name: '声呐回声定位', rank: 'A', desc: '双耳捕捉微弱回声，闭眼亦可感知周围障碍' },
+  { name: '近战宗师直觉', rank: 'A', desc: '面对冷兵器劈刺时本能架招格挡反制' },
+  { name: '极限负重耐力', rank: 'A', desc: '负重两百斤奔袭数十里不脱力' },
+  { name: '毒素代谢特异', rank: 'A', desc: '肝脏解毒效率翻倍，免受大部分剧毒即死' },
+  { name: '战术雷管精工', rank: 'A', desc: '拆卸排爆与自制爆炸物成功率提升' },
+  { name: '绝境应激爆发', rank: 'A', desc: '陷入四面重围时神经感知加速，体能超常发挥' },
+
+  // --- B 级（基础专长/凡人强化 · 72% 概率基石）---
   { name: '语言大师全通', rank: 'B', desc: '能听懂并讲说诸天任意位面的本土语言' },
   { name: '敏锐五感洞察', rank: 'B', desc: '视力与听力覆盖范围提升200%' },
   { name: '顽强生命韧性', rank: 'B', desc: '失血耐受力提升，不易陷入昏迷休克' },
+  { name: '战术快速包扎', rank: 'B', desc: '战地急救与止血包扎手法极其娴熟' },
+  { name: '基础轻武器熟练', rank: 'B', desc: '熟练拆解、换弹并射击各类常规枪械手枪' },
+  { name: '野外生存大师', rank: 'B', desc: '在荒野迅速辨别水源、安全庇护所与方向' },
+  { name: '机械简易维修', rank: 'B', desc: '能用简陋工具排除发动机或枪械卡壳故障' },
+  { name: '冷血沉着心智', rank: 'B', desc: '目睹血腥残肢或尸变时不易慌乱失控' },
+  { name: '短跑冲刺爆发', rank: 'B', desc: '百米冲刺速度超越普通受训运动员' },
+  { name: '攀爬翻越灵巧', rank: 'B', desc: '徒手攀爬墙壁水管与翻越铁丝网动作敏捷' },
+  { name: '耐寒低温体质', rank: 'B', desc: '在冰雪极寒环境下手脚不易冻僵麻木' },
+  { name: '耐热耐旱皮肤', rank: 'B', desc: '在酷热环境下体液流失变慢，耐受高温' },
+  { name: '坚毅戒备本能', rank: 'B', desc: '睡眠浅，周围微弱脚步响动即可瞬间惊醒' },
+  { name: '徒手格斗技巧', rank: 'B', desc: '掌握特警擒拿与地面关节技防身技巧' },
+  { name: '掷弹落点准星', rank: 'B', desc: '投掷手雷或燃烧瓶落点偏差极小' },
+  { name: '防暴镇静意识', rank: 'B', desc: '面对暴徒群体或骚乱时不易被挤压踩踏' },
+  { name: '隐蔽呼吸节奏', rank: 'B', desc: '屏息时间延长至两分钟以上' },
+  { name: '战术掩护走位', rank: 'B', desc: '习惯贴墙移动，本能寻找坚固掩体遮挡要害' },
+  { name: '应急避险直觉', rank: 'B', desc: '听见破空声或爆炸引信声能瞬间卧倒' },
+  { name: '快速换弹手法', rank: 'B', desc: '盲操换弹匣速度提升50%' },
+  { name: '精力充沛充盈', rank: 'B', desc: '每天仅需睡眠4小时即可完全恢复充沛体能' },
+  { name: '水性游泳精通', rank: 'B', desc: '擅长水下潜泳与克服水流阻力' },
+  { name: '心理博弈察觉', rank: 'B', desc: '能从NPC微表情与眼神中识破明显谎言' },
+  { name: '战地抗感染体质', rank: 'B', desc: '伤口在污浊泥泞环境中不易化脓恶化' },
 ]
+
+// 抽取通用天赋（加权概率与阶梯保底机制）
+export function drawGeneralTalents(count: number = 12, pullCount: number = 0): Talent[] {
+  const drawOne = (): Talent => {
+    const rand = Math.random() * 100
+    let rank: 'UR' | 'SSS' | 'SS' | 'S' | 'A' | 'B' = 'B'
+
+    if (rand < 0.08) {
+      rank = 'UR' // 0.08%
+    } else if (rand < 0.4) {
+      rank = 'SSS' // ~0.32%
+    } else if (rand < 2.0) {
+      rank = 'SS' // ~1.6%
+    } else if (rand < 8.0) {
+      rank = 'S' // ~6%
+    } else if (rand < 28.0) {
+      rank = 'A' // ~20%
+    } else {
+      rank = 'B' // ~72% (绝大多数是凡人专长)
+    }
+
+    const pool = GLOBAL_TALENTS.filter(t => t.rank === rank)
+    if (pool.length > 0) {
+      return pool[Math.floor(Math.random() * pool.length)]
+    }
+    return GLOBAL_TALENTS[Math.floor(Math.random() * GLOBAL_TALENTS.length)]
+  }
+
+  const results: Talent[] = []
+  const used = new Set<string>()
+
+  for (let i = 0; i < count; i++) {
+    let t = drawOne()
+    let attempts = 0
+    while (used.has(t.name) && attempts < 25) {
+      t = drawOne()
+      attempts++
+    }
+    used.add(t.name)
+    results.push(t)
+  }
+
+  // 阶梯保底机制（合理长线保底，杜绝烂大街）
+  if (pullCount >= 200) {
+    const urList = GLOBAL_TALENTS.filter(t => t.rank === 'UR')
+    if (urList.length) results[0] = urList[Math.floor(Math.random() * urList.length)]
+  } else if (pullCount >= 144) {
+    const sssList = GLOBAL_TALENTS.filter(t => t.rank === 'SSS')
+    if (sssList.length) results[0] = sssList[Math.floor(Math.random() * sssList.length)]
+  } else if (pullCount >= 72) {
+    const ssList = GLOBAL_TALENTS.filter(t => t.rank === 'SS')
+    if (ssList.length) results[0] = ssList[Math.floor(Math.random() * ssList.length)]
+  } else if (pullCount >= 36) {
+    const sList = GLOBAL_TALENTS.filter(t => t.rank === 'S')
+    if (sList.length) results[0] = sList[Math.floor(Math.random() * sList.length)]
+  } else {
+    // 每次18连保底至少 1 张 A 级或以上优质天赋
+    const hasTierAOrAbove = results.some(t => ['A', 'S', 'SS', 'SSS', 'UR'].includes(t.rank))
+    if (!hasTierAOrAbove) {
+      const aList = GLOBAL_TALENTS.filter(t => t.rank === 'A')
+      if (aList.length) results[0] = aList[Math.floor(Math.random() * aList.length)]
+    }
+  }
+
+  // 排序：高阶天赋排在前列（UR > SSS > SS > S > A > B）
+  const order: Record<string, number> = { UR: 6, SSS: 5, SS: 4, S: 3, A: 2, B: 1 }
+  return results.sort((a, b) => (order[b.rank] || 0) - (order[a.rank] || 0))
+}
 
 export const RANK_COLORS: Record<string, string> = {
   UR: 'text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 font-black animate-pulse',
@@ -238,9 +371,9 @@ export const WorldAccessModal: React.FC<WorldAccessModalProps> = ({
   // 躯壳适配状态
   const [selectedIdentity, setSelectedIdentity] = useState(currentWorld.identities[0])
 
-  // 天赋抽卡系统
+  // 天赋抽卡系统（初始采用加权概率抽取，避免初始满屏高级天赋）
   const [pulledOrigin, setPulledOrigin] = useState<Talent[]>(currentWorld.originTalents)
-  const [pulledGeneral, setPulledGeneral] = useState<Talent[]>(GLOBAL_TALENTS.slice(0, 12))
+  const [pulledGeneral, setPulledGeneral] = useState<Talent[]>(() => drawGeneralTalents(12, 0))
   const [pullCount, setPullCount] = useState(0)
   const [showDirectPicker, setShowDirectPicker] = useState(false)
 
@@ -264,32 +397,20 @@ export const WorldAccessModal: React.FC<WorldAccessModalProps> = ({
     setSelectedIdentity(rand)
   }
 
-  // 🎲 抽取天赋池（18连抽，带保底计算）
+  // 🎲 抽取天赋池（18连抽，带真实加权概率与保底计算）
   const handlePull18 = () => {
     const nextCount = pullCount + 18
     setPullCount(nextCount)
 
-    // 本源固定6个（洗牌）
+    // 本源专属固定6个洗牌
     const originPool = isCustomWorld ? customWorld.originTalents : currentWorld.originTalents
     const shuffledOrigin = [...originPool].sort(() => 0.5 - Math.random())
 
-    // 通用池12连抽
-    const allGeneral = [...GLOBAL_TALENTS]
-    const shuffledGeneral = allGeneral.sort(() => 0.5 - Math.random()).slice(0, 12)
-
-    // 保底检查
-    if (nextCount >= 50) {
-      shuffledGeneral[0] = { name: '【保底UR】虚数维度降临', rank: 'UR', desc: '保底触发：无尽概念兵刃投射' }
-    } else if (nextCount >= 20) {
-      shuffledGeneral[0] = { name: '【保底SSS】因果律逆命修正', rank: 'SSS', desc: '保底触发：逆转必死因果' }
-    } else if (nextCount >= 10) {
-      shuffledGeneral[0] = { name: '【保底SS】心灵之光·绝对领域', rank: 'SS', desc: '保底触发：意志化为无上屏障' }
-    } else if (nextCount >= 5) {
-      shuffledGeneral[0] = { name: '【保底S】绝对冷酷心智', rank: 'S', desc: '保底触发：免疫一切精神恐惧' }
-    }
+    // 通用池按真实概率和保底模型抽取12个
+    const drawnGeneral = drawGeneralTalents(12, nextCount)
 
     setPulledOrigin(shuffledOrigin)
-    setPulledGeneral(shuffledGeneral)
+    setPulledGeneral(drawnGeneral)
   }
 
   // 选择/取消选择本源专属天赋 (max 2)
@@ -633,17 +754,20 @@ ${selectedOriginTalents.length > 0 ? selectedOriginTalents.map(t => `   - [${t.r
 
                 {/* 保底机制说明 Banner */}
                 <div className="p-3 rounded-xl border border-cyan-500/40 bg-[#081226]/90 text-xs text-gray-100 leading-relaxed font-mono space-y-1">
-                  <div>
-                    <span className="text-amber-300 font-bold">保底机制：</span>
-                    每5抽必出S，每10抽必出SS，每20抽必出SSS，每50抽必出UR（彩色）。
-                    <span className="ml-2 text-cyan-300 font-bold">已累计抽取: {pullCount} 次</span>
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <div>
+                      <span className="text-amber-300 font-bold">抽卡概率：</span>
+                      <span className="text-gray-300">B级 72% ｜ A级 20% ｜ S级 6% ｜ SS级 1.6% ｜ SSS级 0.32% ｜ UR 0.08%</span>
+                    </div>
+                    <span className="text-cyan-300 font-bold">已累计抽取: {pullCount} 次</span>
                   </div>
                   <div>
+                    <span className="text-amber-400 font-bold">阶梯保底：</span>
+                    单次18连保底1张A级以上，累计36抽保底S级，72抽保底SS级，144抽保底SSS级。
+                  </div>
+                  <div className="text-gray-300 font-medium">
                     <span className="text-sky-300 font-bold">规则：</span>
-                    本源专属天赋 6 选 2，异界+通用天赋 12 选 3。
-                  </div>
-                  <div className="text-gray-200 font-medium">
-                    可点「🔍 指定天赋」直接挑选任意天赋；已选天赋点 ✕ 可移除。
+                    本源专属天赋 6 选 2，异界+通用天赋 12 选 3。可点「🔍 指定天赋」直接挑选；已选点 ✕ 可移除。
                   </div>
                 </div>
 
