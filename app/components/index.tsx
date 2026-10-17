@@ -25,6 +25,7 @@ import { addFileInfos, sortAgentSorts } from '@/utils/tools'
 import { useAuth } from '@/context/auth-context'
 import AuthModal from '@/app/components/auth/auth-modal'
 import PointsLogModal from '@/app/components/auth/points-log-modal'
+import { getStoredModelId } from '@/service/models'
 
 export interface IMainProps {
   params: any
@@ -404,6 +405,7 @@ const Main: FC<IMainProps> = () => {
       inputs: toServerInputs,
       query: message,
       conversation_id: isNewConversation ? null : currConversationId,
+      model: getStoredModelId() || undefined,
     }
 
     if (files && files?.length > 0) {
@@ -718,6 +720,7 @@ const Main: FC<IMainProps> = () => {
         isMobile={isMobile}
         onShowSideBar={showSidebar}
         onCreateNewChat={() => handleConversationIdChange('-1')}
+        conversationId={currConversationId}
       />
       <div className="flex bg-[#16191f] overflow-hidden">
         {/* sidebar */}

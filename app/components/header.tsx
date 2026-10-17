@@ -14,12 +14,14 @@ import {
 } from '@heroicons/react/24/solid'
 import AppIcon from '@/app/components/base/app-icon'
 import { useAuth } from '@/context/auth-context'
+import { ModelSelector } from './header/model-selector'
 
 export interface IHeaderProps {
   title: string
   isMobile?: boolean
   onShowSideBar?: () => void
   onCreateNewChat?: () => void
+  conversationId?: string
 }
 
 const Header: FC<IHeaderProps> = ({
@@ -27,6 +29,7 @@ const Header: FC<IHeaderProps> = ({
   isMobile,
   onShowSideBar,
   onCreateNewChat,
+  conversationId,
 }) => {
   const { user, isLoggedIn, openAuthModal, openPointsLogModal, logout } = useAuth()
   const [showDropdown, setShowDropdown] = useState(false)
@@ -56,10 +59,15 @@ const Header: FC<IHeaderProps> = ({
         )}
         <div className="flex items-center space-x-2">
           <AppIcon size="small" />
-          <div className="text-xs sm:text-sm text-[#E6ECE8] font-bold tracking-wide truncate max-w-[140px] sm:max-w-[220px]">
+          <div className="text-xs sm:text-sm text-[#E6ECE8] font-bold tracking-wide truncate max-w-[120px] sm:max-w-[200px]">
             {title}
           </div>
         </div>
+      </div>
+
+      {/* Center: Cyber Model Selector (还原原版居中胶囊设计) */}
+      <div className="flex items-center justify-center px-1">
+        <ModelSelector conversationId={conversationId} />
       </div>
 
       {/* Right side: Auth & Points & Mobile new chat */}
