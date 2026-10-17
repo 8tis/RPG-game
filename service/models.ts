@@ -5,22 +5,43 @@
 export interface ModelOption {
   id: string
   name: string
+  raw_name?: string
   badge: string
   color: 'emerald' | 'cyan' | 'amber' | 'purple' | 'blue' | string
   desc: string
   provider: string
   model_name: string
+  category: 'google' | 'siliconflow' | 'tongyi' | string
+  category_name: string
+  is_featured?: boolean
+}
+
+export interface CategoryOption {
+  id: string
+  name: string
+  count?: number
+}
+
+export interface ModelsResponseData {
+  current_model_id: string
+  current_model?: ModelOption
+  categories: CategoryOption[]
+  featured_models: ModelOption[]
+  models: ModelOption[]
 }
 
 export const modelsApi = {
-  getModels: async (): Promise<{ models: ModelOption[]; current_model_id: string }> => {
-    const res = await fetch('/api/rpg/models', { cache: 'no-store' })
+  getModels: async (conversationId?: string): Promise<ModelsResponseData> => {
+    const url = conversationId && conversationId !== '-1'
+      ? `/api/rpg/models?conversation_id=${encodeURIComponent(conversationId)}`
+      : '/api/rpg/models'
+    const res = await fetch(url, { cache: 'no-store' })
     const json = await res.json()
     if (json.code !== 0) throw new Error(json.msg || '获取神经模型列表失败')
     return json.data
   },
 
-  switchModel: async (modelId: string, conversationId?: string): Promise<{ model_id: string; model_name: string; config_id: string }> => {
+  switchModel: async (modelId: string, conversationId?: string): Promise<{ model_id: string; model_name: string; config_id: string; model?: ModelOption }> => {
     const res = await fetch('/api/rpg/models/switch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
