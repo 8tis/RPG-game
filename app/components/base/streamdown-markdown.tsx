@@ -340,7 +340,6 @@ const InteractiveNpcCard: FC<{
             })
           ) : (
             <Streamdown
-              allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
               components={storyDarkComponents}
             >
               {cleanAndTransformContent(content)}
@@ -622,7 +621,6 @@ const CollapsibleDetailsCard: FC<{
         <div className="p-4 text-sm text-[#E6ECE8] space-y-2 border-t bg-[#16191f] border-[#343b44]">
           {content ? (
             <Streamdown
-              allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
               components={storyDarkComponents}
             >
               {cleanAndTransformContent(content)}
@@ -698,7 +696,6 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
     return (
       <div className={`streamdown-markdown ${className}`}>
         <Streamdown
-          allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
           components={storyDarkComponents}
         >
           {segments[0].content}
@@ -727,7 +724,6 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
         return (
           <div key={`text-${idx}`}>
             <Streamdown
-              allowedLinkPrefixes={['http://', 'https://', 'mailto:', '#', 'tel:']}
               components={storyDarkComponents}
             >
               {seg.content}
