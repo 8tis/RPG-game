@@ -17,24 +17,77 @@ interface Segment {
   defaultOpen?: boolean
 }
 
-// Convert <span class="t-xxx">text</span> into [text](#t-xxx) so markdown parses it into styled spans
-function transformSpanClasses(text: string): string {
-  if (!text)
+// 全局深度清洗与语义化转换函数（兼容 PC 与移动端，彻底消除裸 HTML 与未解析标记）
+function cleanAndTransformContent(raw: string): string {
+  if (!raw)
     return ''
-  // Replace <span class="...">content</span>
-  let result = text.replace(
+
+  let text = raw
+
+  // 1. 去除包裹在 HTML/标签外层的代码反引号（例如 `<span class="t-gold">...</span>`）
+  text = text.replace(/`\s*(<span(?:\s+class=['"][^'"]*['"])?>[\s\S]*?<\/span>)\s*`/gi, '$1')
+  text = text.replace(/`\s*(<\/?(?:span|div|details|summary|p|b|i)[^>]*>)\s*`/gi, '$1')
+  text = text.replace(/`\s*(\[[^\]]+\]\(#t-[a-z0-9_-]+\))\s*`/gi, '$1')
+
+  // 2. 将 NPC 观测判定块（<div class="observe-wrap-v2">...</div> 或 observe-wrap）转换为科幻引用判定卡片
+  text = text.replace(/<div(?:\s+class=['"]?observe-wrap[^'">]*['"]?)?>([\s\S]*?)<\/div>/gi, (_, inner) => {
+    let trigger = '🔍 观测判定通过'
+    let detail = ''
+
+    // A. 匹配 HTML spans 结构
+    const triggerMatch = inner.match(/<span(?:\s+class=['"]?secret-trigger[^'">]*['"]?)?>([\s\S]*?)<\/span>/i)
+    const popupMatch = inner.match(/<span(?:\s+class=['"]?secret-popup[^'">]*['"]?)?>([\s\S]*?)<\/span>/i)
+
+    if (triggerMatch && popupMatch) {
+      trigger = triggerMatch[1].replace(/<[^>]+>/g, '').trim()
+      detail = popupMatch[1].replace(/<[^>]+>/g, '').trim()
+    }
+    else {
+      // B. 匹配可能已被部分转义的锚点格式 [trigger](#secret-trigger...) [detail](#secret-popup...)
+      const trigPart = inner.split(/\(?#secret-trigger[^\)]*\)?/i)[0]
+      const afterTrig = inner.split(/\(?#secret-trigger[^\)]*\)?/i)[1] || ''
+      const popupPart = afterTrig.split(/\(?#secret-popup[^\)]*\)?/i)[0]
+
+      if (afterTrig) {
+        trigger = trigPart.replace(/^[\[\s]+/, '').replace(/[\]\s]+$/, '').trim()
+        detail = popupPart.replace(/^[\[\s]+/, '').replace(/[\]\s]+$/, '').trim()
+      }
+      else {
+        detail = inner.replace(/<[^>]+>/g, '').trim()
+      }
+    }
+
+    // 规范化 trigger，保留纯净文本
+    const cleanTrig = '🔍 ' + trigger.replace(/^[\s\[]*🔍\s*/, '').replace(/[\[\]]/g, '').trim()
+    const cleanDetail = detail.replace(/^[\[\s]+|[\]\s]+$/g, '').trim()
+
+    return `\n\n> 👁️ **[${cleanTrig}]**  \n> ${cleanDetail}\n\n`
+  })
+
+  // 清除任何游离在外的 secret-trigger / secret-popup 锚点标签
+  text = text.replace(/\[([\s\S]*?)\]\(#secret-trigger[^\)]*\)/gi, '$1')
+  text = text.replace(/\[([\s\S]*?)\]\(#secret-popup[^\)]*\)/gi, '$1')
+
+  // 3. 将 <span class="t-xxx">内容</span> 转换为 Markdown 链接标记，并转义内部括号以防 CommonMark 解析断裂
+  text = text.replace(
     /<span(?:\s+class=['"]?([^'">\s]+)['"]?)?>([\s\S]*?)<\/span>/gi,
     (_, cls, inner) => {
-      if (cls)
-        return `[${inner}](#${cls})`
+      if (cls && (cls.startsWith('t-') || cls.startsWith('t_'))) {
+        const safeInner = inner.replace(/\[/g, '\\[').replace(/\]/g, '\\]')
+        return `[${safeInner}](#${cls})`
+      }
       return inner
     },
   )
-  // Clean up any remaining stray tags
-  result = result
-    .replace(/<\/?details[^>]*>/gi, '')
-    .replace(/<\/?summary[^>]*>/gi, '')
-  return result
+
+  // 4. 清除任何未正确闭合或残留的裸 HTML 标签，防止其直接以源代码形式泄露到界面
+  text = text
+    .replace(/<\/?div[^>]*>/gi, '')
+    .replace(/<\/?span[^>]*>/gi, '')
+    .replace(/<\/?p[^>]*>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+
+  return text
 }
 
 // 提取 <think>...</think> 思考链内容
@@ -66,7 +119,7 @@ function parseSegments(raw: string): Segment[] {
 
   // Check if content has any <details
   if (!/<details/i.test(raw))
-    return [{ type: 'text', content: transformSpanClasses(raw) }]
+    return [{ type: 'text', content: cleanAndTransformContent(raw) }]
 
   const segments: Segment[] = []
   // Matches either closed <details><summary>...</summary>...</details>
@@ -80,7 +133,7 @@ function parseSegments(raw: string): Segment[] {
     if (match.index > lastIndex) {
       const textBefore = raw.slice(lastIndex, match.index).trim()
       if (textBefore)
-        segments.push({ type: 'text', content: transformSpanClasses(textBefore) })
+        segments.push({ type: 'text', content: cleanAndTransformContent(textBefore) })
     }
 
     const attrs = match[1] || ''
@@ -91,7 +144,7 @@ function parseSegments(raw: string): Segment[] {
     segments.push({
       type: 'details',
       summary: summaryText,
-      content: transformSpanClasses(bodyContent),
+      content: cleanAndTransformContent(bodyContent),
       defaultOpen: isOpenAttr,
     })
 
@@ -103,7 +156,7 @@ function parseSegments(raw: string): Segment[] {
   if (lastIndex < raw.length) {
     const remaining = raw.slice(lastIndex).trim()
     if (remaining)
-      segments.push({ type: 'text', content: transformSpanClasses(remaining) })
+      segments.push({ type: 'text', content: cleanAndTransformContent(remaining) })
   }
 
   return segments
@@ -259,11 +312,27 @@ const storyDarkComponents = {
       </li>
     )
   },
-  blockquote: ({ children, ...props }: any) => (
-    <blockquote className="border-l-4 border-[#70D8E0] bg-[#25292f]/80 px-4 py-2.5 my-3 rounded-r-xl text-[#E6ECE8] text-sm font-medium leading-relaxed" {...props}>
-      {children}
-    </blockquote>
-  ),
+  blockquote: ({ children, ...props }: any) => {
+    const rawText = extractRawText(children)
+    if (rawText.includes('观测通过') || rawText.includes('观测判定') || rawText.includes('👁️') || rawText.includes('隐秘洞察') || rawText.includes('微观/规则')) {
+      return (
+        <div className="my-2.5 p-3 sm:p-3.5 rounded-xl border border-[#70D8E0]/40 bg-[#162026]/95 shadow-lg backdrop-blur-sm text-sm text-[#E6ECE8]">
+          <div className="flex items-center gap-2 mb-2 text-[#70D8E0] font-bold text-xs sm:text-sm">
+            <span className="w-2 h-2 rounded-full bg-[#70D8E0] shadow-[0_0_8px_#70D8E0] shrink-0 animate-pulse" />
+            <span>【隐秘洞察·观测判定】</span>
+          </div>
+          <div className="pl-3 border-l-2 border-[#70D8E0]/60 text-xs sm:text-sm text-[#E6ECE8]/95 leading-relaxed font-sans">
+            {children}
+          </div>
+        </div>
+      )
+    }
+    return (
+      <blockquote className="border-l-4 border-[#70D8E0] bg-[#25292f]/80 px-4 py-2.5 my-3 rounded-r-xl text-[#E6ECE8] text-sm font-medium leading-relaxed" {...props}>
+        {children}
+      </blockquote>
+    )
+  },
   table: ({ children, ...props }: any) => (
     <div className="overflow-x-auto my-3 rounded-xl border border-[#343b44] shadow-inner bg-[#1a1d22]">
       <table className="w-full text-left text-xs border-collapse" {...props}>{children}</table>
@@ -281,9 +350,33 @@ const storyDarkComponents = {
   tr: ({ children, ...props }: any) => (
     <tr className="border-b border-[#343b44]/30 hover:bg-[#25292f]/60 transition-colors" {...props}>{children}</tr>
   ),
-  code: ({ children, ...props }: any) => (
-    <code className="bg-[#25292f] text-[#E3C362] px-1.5 py-0.5 rounded text-xs font-mono border border-[#363d47]" {...props}>{children}</code>
-  ),
+  code: ({ children, ...props }: any) => {
+    const rawText = extractRawText(children)
+    // 兜底防御：若模型仍有反引号包裹 HTML 标签或链接漏入 inline code，解析为正统彩色词条 Badge
+    if (/<span\s+class=["']?(t-[^"'\s>]+)["']?>([\s\S]*?)<\/span>/i.test(rawText)) {
+      const match = rawText.match(/<span\s+class=["']?(t-[^"'\s>]+)["']?>([\s\S]*?)<\/span>/i)
+      if (match) {
+        return (
+          <span className={`inline-block font-bold px-1.5 py-0.5 rounded text-xs bg-[#25292f] border border-[#363d47] shadow-sm ${match[1]}`}>
+            {match[2]}
+          </span>
+        )
+      }
+    }
+    if (/\[([\s\S]*?)\]\(#(t-[a-z0-9_-]+)\)/i.test(rawText)) {
+      const match = rawText.match(/\[([\s\S]*?)\]\(#(t-[a-z0-9_-]+)\)/i)
+      if (match) {
+        return (
+          <span className={`inline-block font-bold px-1.5 py-0.5 rounded text-xs bg-[#25292f] border border-[#363d47] shadow-sm ${match[2]}`}>
+            {match[1].replace(/\\/g, '')}
+          </span>
+        )
+      }
+    }
+    return (
+      <code className="bg-[#25292f] text-[#E3C362] px-1.5 py-0.5 rounded text-xs font-mono border border-[#363d47]" {...props}>{children}</code>
+    )
+  },
   pre: ({ children, ...props }: any) => (
     <pre className="bg-[#13161c] text-[#70D8E0] p-3.5 rounded-xl border border-[#343b44] text-xs font-mono overflow-x-auto my-2.5" {...props}>{children}</pre>
   ),
@@ -292,7 +385,14 @@ const storyDarkComponents = {
     if (href && (href.startsWith('#t-') || href.startsWith('#t_'))) {
       const clsName = href.slice(1)
       return (
-        <span className={`inline-block font-bold ${clsName}`}>
+        <span className={`inline-block font-bold px-1.5 py-0.5 rounded text-xs bg-[#25292f] border border-[#363d47] shadow-sm ${clsName}`}>
+          {children}
+        </span>
+      )
+    }
+    if (href && (href.startsWith('#secret-trigger') || href.startsWith('#secret-popup'))) {
+      return (
+        <span className="text-[#70D8E0] font-bold">
           {children}
         </span>
       )
