@@ -395,6 +395,7 @@ export const ssePost = (
       return handleStream(res, (str: string, isFirstMessage: boolean, moreInfo: IOnDataMoreInfo) => {
         if (moreInfo.errorMessage) {
           Toast.notify({ type: 'error', message: moreInfo.errorMessage })
+          onError?.(moreInfo.errorMessage)
           return
         }
         onData?.(str, isFirstMessage, moreInfo)

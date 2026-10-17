@@ -201,9 +201,14 @@ const Answer: FC<IAnswerProps> = ({
                 )
                 : (isAgentMode
                   ? agentModeAnswer
-                  : (
+                  : (content ? (
                     <StreamdownMarkdown content={content} />
-                  ))}
+                  ) : (
+                    <div className="py-2 px-3 rounded-lg bg-red-950/20 border border-red-500/30 text-xs text-red-300 flex items-center gap-2">
+                      <span className="text-red-400">⚠️</span>
+                      <span>主神空间演算节点中断（上游模型过载或网络超时）。请在下方重新输入您的推演指令。</span>
+                    </div>
+                  )))}
               {(suggestedQuestions || []).filter(q => q && q.trim()).length > 0 && (
                 <div className="mt-3">
                   <div className="flex gap-1 mt-1 flex-wrap">

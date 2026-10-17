@@ -84,6 +84,7 @@ const Main: FC<IMainProps> = () => {
 
   const [conversationIdChangeBecauseOfNew, setConversationIdChangeBecauseOfNew, getConversationIdChangeBecauseOfNew] = useGetState(false)
   const [isChatStarted, { setTrue: setChatStarted, setFalse: setChatNotStarted }] = useBoolean(false)
+  const [isChatLoading, setIsChatLoading] = useState(false)
   const handleStartChat = (inputs: Record<string, any>) => {
     createNewChat()
     setConversationIdChangeBecauseOfNew(true)
@@ -126,6 +127,7 @@ const Main: FC<IMainProps> = () => {
 
     // update chat list of current conversation
     if (!isNewConversation && !conversationIdChangeBecauseOfNew && !isResponding) {
+      setIsChatLoading(true)
       fetchChatList(currConversationId).then((res: any) => {
         const { data } = res
         const newChatList: ChatItem[] = generateNewChatListWithOpenStatement(notSyncToStateIntroduction, notSyncToStateInputs)
@@ -148,6 +150,10 @@ const Main: FC<IMainProps> = () => {
           })
         })
         setChatList(newChatList)
+      }).catch((err) => {
+        logError('加载历史对话失败: ' + (err?.message || '网络或服务端异常'))
+      }).finally(() => {
+        setIsChatLoading(false)
       })
     }
 
@@ -439,7 +445,10 @@ const Main: FC<IMainProps> = () => {
           hasSetResponseId = true
         }
 
-        if (isFirstMessage && newConversationId) { tempNewConversationId = newConversationId }
+        if (isFirstMessage && newConversationId) {
+          tempNewConversationId = newConversationId
+          setCurrConversationId(newConversationId, APP_ID, true)
+        }
 
         setMessageTaskId(taskId)
         // has switched to other conversation
@@ -455,22 +464,28 @@ const Main: FC<IMainProps> = () => {
         })
       },
       async onCompleted(hasError?: boolean) {
+        setRespondingFalse()
         if (hasError) { return }
 
         if (getConversationIdChangeBecauseOfNew()) {
-          const { data: allConversations }: any = await fetchConversations()
-          const newItem: any = await generationConversationName(allConversations[0].id)
+          try {
+            const { data: allConversations }: any = await fetchConversations()
+            const newItem: any = await generationConversationName(allConversations[0].id)
 
-          const newAllConversations = produce(allConversations, (draft: any) => {
-            draft[0].name = newItem.name
-          })
-          setConversationList(newAllConversations as any)
+            const newAllConversations = produce(allConversations, (draft: any) => {
+              draft[0].name = newItem.name
+            })
+            setConversationList(newAllConversations as any)
+          } catch (e) {
+            // ignore name generation error
+          }
         }
         setConversationIdChangeBecauseOfNew(false)
         resetNewConversationInputs()
         setChatNotStarted()
-        setCurrConversationId(tempNewConversationId, APP_ID, true)
-        setRespondingFalse()
+        if (tempNewConversationId) {
+          setCurrConversationId(tempNewConversationId, APP_ID, true)
+        }
       },
       onFile(file) {
         const lastThought = responseItem.agent_thoughts?.[responseItem.agent_thoughts?.length - 1]
@@ -561,12 +576,16 @@ const Main: FC<IMainProps> = () => {
           },
         ))
       },
-      onError() {
+      onError(err?: any) {
         setRespondingFalse()
-        // role back placeholder answer
+        // roll back placeholder answer
         setChatList(produce(getChatList(), (draft) => {
-          draft.splice(draft.findIndex(item => item.id === placeholderAnswerId), 1)
+          const idx = draft.findIndex(item => item.id === placeholderAnswerId)
+          if (idx !== -1) {
+            draft.splice(idx, 1)
+          }
         }))
+        logError(typeof err === 'string' ? err : '主神空间连接中断：服务或模型生成异常，请检查配置或稍后重试')
       },
       onWorkflowStarted: ({ workflow_run_id, task_id }) => {
         // taskIdRef.current = task_id
@@ -686,6 +705,8 @@ const Main: FC<IMainProps> = () => {
             <div className='relative grow pc:w-[794px] max-w-full mobile:w-full pb-[180px] mx-auto mb-3.5' ref={chatListDomRef}>
               <Chat
                 chatList={chatList}
+                isNewConversation={isNewConversation}
+                isLoadingConversation={isChatLoading}
                 onSend={handleSend}
                 onFeedback={handleFeedback}
                 isResponding={isResponding}

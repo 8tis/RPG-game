@@ -24,6 +24,8 @@ import { getProcessedFiles } from '@/app/components/base/file-uploader-in-attach
 
 export interface IChatProps {
   chatList: ChatItem[]
+  isNewConversation?: boolean
+  isLoadingConversation?: boolean
   /**
    * Whether to display the editing area and rating status
    */
@@ -44,6 +46,8 @@ export interface IChatProps {
 
 const Chat: FC<IChatProps> = ({
   chatList,
+  isNewConversation = true,
+  isLoadingConversation = false,
   feedbackDisabled = false,
   isHideSendInput = false,
   onFeedback,
@@ -180,7 +184,27 @@ const Chat: FC<IChatProps> = ({
   // 判断游戏是否已经正式启动（通过判断对话列表是否有用户发送的降临指令或正常提问）
   const hasGameStarted = chatList.some(item => !item.isOpeningStatement && !item.isAnswer)
 
-  if (!hasGameStarted) {
+  // 如果正在加载历史对话，显示科幻加载状态，绝不回退至人物创建模态框
+  if (isLoadingConversation) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center py-24 text-[#849396]">
+        <div className="relative mb-5">
+          <div className="w-12 h-12 rounded-xl border border-[#70D8E0]/40 flex items-center justify-center animate-spin">
+            <div className="w-6 h-6 border-2 border-t-[#70D8E0] border-r-transparent border-b-[#88CBAA] border-l-transparent rounded-full" />
+          </div>
+        </div>
+        <div className="text-sm font-semibold tracking-wider text-[#70D8E0] animate-pulse">
+          【主神空间】正在同步宿主轮回世界线档案...
+        </div>
+        <div className="text-xs text-[#849396] mt-2 tracking-wide">
+          神经链接接入中，正在提取记忆矩阵
+        </div>
+      </div>
+    )
+  }
+
+  // 只有当这是一个全新的对话且游戏尚未开始时，才展现降临身份录入视窗
+  if (isNewConversation && !hasGameStarted) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-start py-2 px-2 sm:px-4">
         <WorldAccessModal
