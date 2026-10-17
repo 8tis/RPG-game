@@ -329,7 +329,12 @@ export const WorldAccessModal: React.FC<WorldAccessModalProps> = ({
 4. 激活本源专属天赋（${selectedOriginTalents.length}/2）：
 ${selectedOriginTalents.length > 0 ? selectedOriginTalents.map(t => `   - [${t.rank}] ${t.name}: ${t.desc}`).join('\n') : '   - 无（未激活本源天赋）'}
 5. 激活异界与通用天赋（${selectedGeneralTalents.length}/3）：
-${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t.rank}] ${t.name}: ${t.desc}`).join('\n') : '   - 无（未激活通用天赋）'}
+【系统输出格式约定】：
+- 重要内容使用加粗（自动渲染为灵金色 #E3C362，只在有明确语义时出现）。
+- 致命危险与状态警报标明「警告：...」或「不可逆风险/认知污染」（自动渲染为警示大红色 #FF3B3B）。
+- 环境时间与位面坐标标明「星历/时间/坐标：...」（自动渲染为次要灰 #849396）。
+- 核心回路与系统宣告标明「舰载核心/系统提示：...」（自动渲染为科技青 #70D8E0）。
+- 每一幕剧情结束处，必须以「你要如何回应？」列出 2~4 条具体的行动指令分支！
 
 系统初始化完毕，世界线锚定牢固。请立即为宿主开启第一幕降临剧情，严格基于上述身世、物资与天赋生成开局死局或破局遭遇！`
   }, [currentWorld, customWorld, isCustomWorld, profile, mode, selectedIdentity, selectedOriginTalents, selectedGeneralTalents])
@@ -344,17 +349,15 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
   const modalContent = (
     <div
       className={cn(
-        'w-full max-w-4xl flex flex-col rounded-2xl border-2 border-cyan-500/80 shadow-[0_0_35px_rgba(6,182,212,0.35)] overflow-hidden text-gray-200',
+        'w-full max-w-4xl flex flex-col rounded-2xl border border-[#343b44] shadow-2xl overflow-hidden text-[#E6ECE8]',
         isInline ? 'my-1 max-h-[88vh] min-h-[620px]' : 'max-h-[92vh]',
       )}
       style={{
-        backgroundColor: '#040812',
-        backgroundImage: 'linear-gradient(rgba(0, 240, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.07) 1px, transparent 1px)',
-        backgroundSize: '24px 24px',
+        backgroundColor: '#1a1d22',
       }}
     >
       {/* 顶部主导航 Tab 条 */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-[#03060f]/90 border-b border-cyan-500/40">
+      <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-[#25292f] border-b border-[#363d47]">
         <div className="flex items-center gap-1 sm:gap-2">
           <button
             type="button"
@@ -362,8 +365,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             className={cn(
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
               activeTab === 'profile'
-                ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                : 'text-gray-300 hover:text-white hover:bg-white/10',
+                ? 'bg-[#1a1d22] text-[#70D8E0] border border-[#70D8E0]/40 shadow-xs'
+                : 'text-[#849396] hover:text-[#E6ECE8] hover:bg-[#1a1d22]',
             )}
           >
             个人档案
@@ -374,8 +377,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             className={cn(
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
               activeTab === 'mode'
-                ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                : 'text-gray-300 hover:text-white hover:bg-white/10',
+                ? 'bg-[#1a1d22] text-[#70D8E0] border border-[#70D8E0]/40 shadow-xs'
+                : 'text-[#849396] hover:text-[#E6ECE8] hover:bg-[#1a1d22]',
             )}
           >
             开局模式
@@ -386,12 +389,12 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             className={cn(
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1',
               activeTab === 'world'
-                ? 'bg-cyan-500/25 text-cyan-200 border-2 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.5)]'
-                : 'text-gray-300 hover:text-white hover:bg-white/10',
+                ? 'bg-[#1a1d22] text-[#70D8E0] border-2 border-[#70D8E0] shadow-[0_0_12px_rgba(112,216,224,0.3)]'
+                : 'text-[#849396] hover:text-[#E6ECE8] hover:bg-[#1a1d22]',
             )}
           >
             <span>世界接入</span>
-            <span className="text-[10px] text-cyan-400 font-mono">(6选1)</span>
+            <span className="text-[10px] text-[#70D8E0] font-mono">(6选1)</span>
           </button>
           <button
             type="button"
@@ -399,8 +402,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             className={cn(
               'px-3 py-1.5 text-xs font-bold rounded-lg transition-all',
               activeTab === 'export'
-                ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                : 'text-gray-300 hover:text-white hover:bg-white/10',
+                ? 'bg-[#1a1d22] text-[#70D8E0] border border-[#70D8E0]/40 shadow-xs'
+                : 'text-[#849396] hover:text-[#E6ECE8] hover:bg-[#1a1d22]',
             )}
           >
             数据导出
@@ -409,8 +412,8 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
 
         {isInline ? (
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#1a1d22] text-[#70D8E0] border border-[#70D8E0]/40 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#88CBAA] animate-pulse"></span>
               首次降临·身份与世界初始化配置
             </span>
           </div>
@@ -418,7 +421,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#849396] hover:text-[#E6ECE8] hover:bg-[#1a1d22] transition-colors"
           >
             ✕
           </button>
@@ -826,9 +829,9 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
         </div>
 
         {/* 底部固定操作栏 */}
-        <div className="shrink-0 p-4 bg-[#03060f]/95 border-t border-cyan-500/40 flex items-center justify-between gap-3">
-          <div className="text-xs text-gray-200 font-medium hidden sm:block">
-            当前就绪：<span className="text-cyan-300 font-bold">{isCustomWorld ? customWorld.name : currentWorld.name}</span>
+        <div className="shrink-0 p-4 bg-[#1a1d22] border-t border-[#343b44] flex items-center justify-between gap-3">
+          <div className="text-xs text-[#849396] font-medium hidden sm:block">
+            当前就绪：<span className="text-[#70D8E0] font-bold">{isCustomWorld ? customWorld.name : currentWorld.name}</span>
             <span className="mx-1.5">|</span>
             <span>已配专属 {selectedOriginTalents.length}/2</span>
             <span className="mx-1.5">|</span>
@@ -840,7 +843,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
               <button
                 type="button"
                 onClick={handleExecuteLaunch}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-cyan-300 hover:text-cyan-100 hover:bg-cyan-950/60 border border-cyan-500/40 transition-all"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-[#70D8E0] hover:text-white bg-[#25292f] hover:bg-[#2c333f] border border-[#363d47] hover:border-[#70D8E0]/50 transition-all"
                 title="使用默认初始配置直接启动降临"
               >
                 ⚡ 默认身份直接降临
@@ -849,7 +852,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-[#849396] hover:text-[#E6ECE8] hover:bg-[#25292f] transition-colors"
               >
                 稍后配置
               </button>
@@ -857,7 +860,7 @@ ${selectedGeneralTalents.length > 0 ? selectedGeneralTalents.map(t => `   - [${t
             <button
               type="button"
               onClick={handleExecuteLaunch}
-              className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl font-black text-xs text-black bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-400 hover:brightness-110 active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.5)] tracking-wider transition-all"
+              className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl font-black text-xs text-[#12151a] bg-gradient-to-r from-[#70D8E0] via-[#88CBAA] to-[#70D8E0] hover:brightness-110 active:scale-95 shadow-[0_0_20px_rgba(112,216,224,0.4)] tracking-wider transition-all"
             >
               🚀 锚定世界，启动降临！
             </button>

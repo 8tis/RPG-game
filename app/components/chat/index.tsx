@@ -102,6 +102,18 @@ const Chat: FC<IChatProps> = ({
       queryRef.current = ''
     }
   }, [controlClearQuery])
+
+  useEffect(() => {
+    const handleInsertEvent = (e: any) => {
+      if (e.detail) {
+        handleInsertCommand(e.detail)
+      }
+    }
+    window.addEventListener('insert-command', handleInsertEvent)
+    return () => {
+      window.removeEventListener('insert-command', handleInsertEvent)
+    }
+  }, [])
   const {
     files,
     onUpload,
@@ -220,8 +232,8 @@ const Chat: FC<IChatProps> = ({
               {/* 风月同款：快捷指令工具栏 */}
               <QuickCommandsBar onInsertCommand={handleInsertCommand} />
 
-              {/* 风月同款：发光紫色圆角输入框容器 */}
-              <div className='relative p-[7px] max-h-[160px] bg-white/95 backdrop-blur-md border-2 border-purple-500/80 hover:border-purple-600 focus-within:border-purple-600 rounded-2xl shadow-[0_4px_25px_rgba(147,51,234,0.18)] transition-all'>
+              {/* 风月同款：发光科技圆角输入框容器 */}
+              <div className='relative p-[7px] max-h-[160px] bg-[#1a1d22]/95 backdrop-blur-md border border-[#343b44] hover:border-[#70D8E0]/70 focus-within:border-[#70D8E0] rounded-2xl shadow-[0_4px_25px_rgba(0,0,0,0.6)] transition-all'>
                 {
                   visionConfig?.enabled && (
                     <>
@@ -231,7 +243,7 @@ const Chat: FC<IChatProps> = ({
                           onUpload={onUpload}
                           disabled={files.length >= visionConfig.number_limits}
                         />
-                        <div className='mx-1 w-[1px] h-4 bg-black/5' />
+                        <div className='mx-1 w-[1px] h-4 bg-white/10' />
                       </div>
                       <div className='pl-[52px]'>
                         <ImageList
@@ -259,10 +271,10 @@ const Chat: FC<IChatProps> = ({
                 <Textarea
                   ref={textareaRef}
                   className={`
-                    block w-full px-2 pr-[110px] py-[6px] leading-6 max-h-none text-base text-gray-800 placeholder-gray-400 outline-none appearance-none resize-none bg-transparent
+                    block w-full px-2 pr-[110px] py-[6px] leading-6 max-h-none text-base text-[#E6ECE8] placeholder-[#849396] outline-none appearance-none resize-none bg-transparent
                     ${visionConfig?.enabled && 'pl-12'}
                   `}
-                  placeholder="输入你的游戏指令，或点击上方快捷按钮..."
+                  placeholder="输入你的游戏指令，或点击选项与快捷按钮..."
                   value={query}
                   onChange={handleContentChange}
                   onKeyUp={handleKeyUp}
@@ -270,7 +282,7 @@ const Chat: FC<IChatProps> = ({
                   autoSize
                 />
                 <div className="absolute bottom-2.5 right-4 flex items-center h-8 gap-2">
-                  <div className="text-xs font-mono font-medium text-gray-400 bg-gray-100/90 px-2 py-0.5 rounded-md">
+                  <div className="text-xs font-mono font-medium text-[#849396] bg-[#25292f] border border-[#363d47] px-2 py-0.5 rounded-md">
                     {query.trim().length}
                   </div>
                   <Tooltip
@@ -289,8 +301,8 @@ const Chat: FC<IChatProps> = ({
                       className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-full transition-all active:scale-95 shadow-md",
                         query.trim() && !isResponding
-                          ? "bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.4)] cursor-pointer"
-                          : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                          ? "bg-gradient-to-r from-[#70D8E0] via-[#88CBAA] to-[#70D8E0] hover:brightness-110 text-[#12151a] font-black shadow-[0_0_12px_rgba(112,216,224,0.4)] cursor-pointer"
+                          : "bg-[#25292f] text-[#849396] cursor-not-allowed shadow-none border border-[#363d47]"
                       )}
                       title="发送指令"
                     >

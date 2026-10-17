@@ -19,8 +19,8 @@ import Thought from '../thought'
 function OperationBtn({ innerContent, onClick, className }: { innerContent: React.ReactNode, onClick?: () => void, className?: string }) {
   return (
     <div
-      className={`relative box-border flex items-center justify-center h-7 w-7 p-0.5 rounded-lg bg-white cursor-pointer text-gray-500 hover:text-gray-800 ${className ?? ''}`}
-      style={{ boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -2px rgba(0, 0, 0, 0.05)' }}
+      className={`relative box-border flex items-center justify-center h-7 w-7 p-0.5 rounded-lg bg-[#25292f] border border-[#363d47] cursor-pointer text-[#849396] hover:text-[#70D8E0] transition-colors ${className ?? ''}`}
+      style={{ boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.3)' }}
       onClick={onClick && onClick}
     >
       {innerContent}
@@ -188,8 +188,8 @@ const Answer: FC<IAnswerProps> = ({
             )}
         </div>
         <div className={`${s.answerWrap} max-w-[calc(100%-3rem)]`}>
-          <div className={`${s.answer} relative text-sm text-gray-900`}>
-            <div className={`ml-2 py-4 px-5 bg-white border border-gray-200/90 rounded-tr-2xl rounded-b-2xl shadow-[0_2px_15px_rgba(0,0,0,0.06)] text-gray-900 ${workflowProcess && 'min-w-[480px]'}`}>
+          <div className={`${s.answer} relative text-sm text-[#E6ECE8]`}>
+            <div className={`ml-2 py-5 px-6 bg-[#1a1d22] border border-[#343b44] rounded-2xl shadow-2xl text-[#E6ECE8] ${workflowProcess && 'min-w-[480px]'}`}>
               {workflowProcess && (
                 <WorkflowProcess data={workflowProcess} hideInfo />
               )}

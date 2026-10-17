@@ -89,41 +89,41 @@ export const GameHud: React.FC<GameHudProps> = ({
   return (
     <div className={cn('w-full mb-4', className)}>
       {/* 顶部科技感 HUD 胶囊条 */}
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#0d1322]/95 via-[#131c36]/95 to-[#0b1220]/95 border-2 border-purple-500/50 shadow-[0_0_20px_rgba(139,92,246,0.25)] p-3.5 text-white backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-2xl bg-[#1a1d22] border border-[#343b44] shadow-xl p-3.5 text-[#E6ECE8] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* 左侧：主机状态 */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[2px] shadow-md overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#70D8E0] to-[#88CBAA] p-[2px] shadow-md overflow-hidden">
                 <img src="/bot-avatar.jpg" alt="HUD" className="w-full h-full object-cover rounded-[10px]" />
               </div>
               <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#88CBAA] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#88CBAA]"></span>
               </span>
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-wide text-white">无限重生系统</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                <span className="font-bold text-sm tracking-wide text-[#E6ECE8]">无限重生系统</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#25292f] text-[#70D8E0] border border-[#363d47]">
                   {world.split(' ')[0]}
                 </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#25292f] text-[#E3C362] border border-[#363d47]">
                   宿主: {profile.name}
                 </span>
               </div>
-              <div className="text-xs text-gray-300 truncate max-w-xs md:max-w-md mt-0.5">
-                当前位面：<span className="text-cyan-200 font-bold">{world}</span>
+              <div className="text-xs text-[#849396] truncate max-w-xs md:max-w-md mt-0.5">
+                当前位面：<span className="text-[#70D8E0] font-bold">{world}</span>
               </div>
             </div>
           </div>
 
           {/* 右侧：世界重要度评级与操作 */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#090e1c] rounded-xl border border-cyan-500/30 text-xs">
-              <span className="text-gray-200 font-bold">世界重要度:</span>
-              <span className="font-black text-sm text-yellow-300 tracking-wider">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#25292f] rounded-xl border border-[#363d47] text-xs">
+              <span className="text-[#849396] font-bold">世界重要度:</span>
+              <span className="font-black text-sm text-[#E3C362] tracking-wider">
                 {importanceRank} 级
               </span>
             </div>
@@ -131,7 +131,7 @@ export const GameHud: React.FC<GameHudProps> = ({
             <button
               type="button"
               onClick={() => setShowSetupModal(true)}
-              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border border-purple-400/50 shadow-md transition-all active:scale-95"
+              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-[#25292f] hover:bg-[#2c333f] text-[#70D8E0] border border-[#363d47] hover:border-[#70D8E0]/60 shadow-md transition-all active:scale-95"
             >
               ⚙️ 身份/世界设定
             </button>
@@ -139,7 +139,7 @@ export const GameHud: React.FC<GameHudProps> = ({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1.5 text-gray-200 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              className="p-1.5 text-[#849396] hover:text-[#E6ECE8] rounded-lg hover:bg-[#25292f] transition-colors"
               title={isExpanded ? '收起属性详情' : '展开属性详情'}
             >
               <svg
@@ -154,24 +154,24 @@ export const GameHud: React.FC<GameHudProps> = ({
           </div>
         </div>
 
-        {/* 展开的宿主详细属性折叠卡（高清高对比度样式） */}
+        {/* 展开的宿主详细属性折叠卡 */}
         {isExpanded && (
-          <div className="mt-3 pt-3 border-t border-purple-500/30 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-cyan-500/40 shadow-inner">
-              <div className="text-cyan-400 text-xs font-bold mb-0.5">核心天赋</div>
-              <div className="font-bold text-sm text-cyan-200 truncate">超低消耗无限重生</div>
+          <div className="mt-3 pt-3 border-t border-[#343b44] grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+            <div className="p-2.5 rounded-xl bg-[#25292f] border border-[#363d47] shadow-inner">
+              <div className="text-[#70D8E0] text-xs font-bold mb-0.5">核心天赋</div>
+              <div className="font-bold text-sm text-[#E6ECE8] truncate">超低消耗无限重生</div>
             </div>
-            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-purple-500/40 shadow-inner">
-              <div className="text-purple-400 text-xs font-bold mb-0.5">性格特质</div>
-              <div className="font-bold text-sm text-purple-200 truncate">{profile.personality}</div>
+            <div className="p-2.5 rounded-xl bg-[#25292f] border border-[#363d47] shadow-inner">
+              <div className="text-[#B396F2] text-xs font-bold mb-0.5">性格特质</div>
+              <div className="font-bold text-sm text-[#B396F2] truncate">{profile.personality}</div>
             </div>
-            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-sky-500/40 shadow-inner">
-              <div className="text-sky-400 text-xs font-bold mb-0.5">外貌特征</div>
-              <div className="font-bold text-sm text-white truncate">{profile.appearance}</div>
+            <div className="p-2.5 rounded-xl bg-[#25292f] border border-[#363d47] shadow-inner">
+              <div className="text-[#88CBAA] text-xs font-bold mb-0.5">外貌特征</div>
+              <div className="font-bold text-sm text-[#88CBAA] truncate">{profile.appearance}</div>
             </div>
-            <div className="p-2.5 rounded-xl bg-[#090e1d] border border-amber-500/40 shadow-inner">
-              <div className="text-amber-400 text-xs font-bold mb-0.5">隐藏加成</div>
-              <div className="font-bold text-sm text-amber-200 truncate">{profile.others}</div>
+            <div className="p-2.5 rounded-xl bg-[#25292f] border border-[#363d47] shadow-inner">
+              <div className="text-[#E3C362] text-xs font-bold mb-0.5">隐藏加成</div>
+              <div className="font-bold text-sm text-[#E3C362] truncate">{profile.others}</div>
             </div>
           </div>
         )}

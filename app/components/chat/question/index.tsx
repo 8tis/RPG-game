@@ -18,12 +18,12 @@ const Question: FC<IQuestionProps> = ({ id, content, useCurrentUserAvatar, imgSr
       <div>
         <div className={`${s.question} relative text-sm`}>
           <div
-            className={'mr-2 py-3.5 px-4.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white rounded-tl-2xl rounded-b-2xl shadow-md border border-purple-400/30 font-medium leading-relaxed max-w-2xl text-left'}
+            className={'mr-2 py-3.5 px-4.5 bg-[#25292f] text-[#E6ECE8] rounded-2xl shadow-lg border border-[#363d47] font-medium leading-relaxed max-w-2xl text-left'}
           >
             {imgSrcs && imgSrcs.length > 0 && (
               <ImageGallery srcs={imgSrcs} />
             )}
-            <StreamdownMarkdown content={content} className="text-white [&_*]:text-white [&_strong]:text-cyan-200 [&_code]:bg-black/30 [&_code]:text-cyan-200" />
+            <StreamdownMarkdown content={content} className="text-[#E6ECE8] [&_*]:text-[#E6ECE8] [&_strong]:text-[#70D8E0] [&_code]:bg-black/40 [&_code]:text-[#E3C362]" />
           </div>
         </div>
       </div>

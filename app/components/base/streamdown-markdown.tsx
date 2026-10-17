@@ -109,64 +109,185 @@ function parseSegments(raw: string): Segment[] {
   return segments
 }
 
-// 暗色折叠卡片专用高对比度组件（用于系统演算、状态栏、深度思考）
-const darkStreamdownComponents = {
-  p: ({ children, ...props }: any) => (
-    <p className="text-gray-100 leading-relaxed my-1.5 text-sm font-normal" {...props}>{children}</p>
-  ),
+// 递归提取节点内的纯文本
+function extractRawText(node: any): string {
+  if (typeof node === 'string') return node
+  if (typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(extractRawText).join('')
+  if (node && typeof node === 'object' && node.props && node.props.children) {
+    return extractRawText(node.props.children)
+  }
+  return ''
+}
+
+// 点击选项快速填入输入框
+const handleOptionClick = (text: string) => {
+  if (typeof window !== 'undefined' && text) {
+    const cleanText = text.replace(/^[\s•\-\*\d\.\、]+/, '').trim()
+    window.dispatchEvent(new CustomEvent('insert-command', { detail: cleanText }))
+  }
+}
+
+// 诸天万界·科幻修仙风格专属暗色语义渲染组件
+const storyDarkComponents = {
+  p: ({ children, ...props }: any) => {
+    const text = extractRawText(children).trim()
+
+    // 1. 大红色：危险与警告、认知污染、不可逆风险 (#FF3B3B)
+    if (
+      /^(?:警告|危险|致命|高危|【警告】|【不可逆风险】|【认知污染】)/.test(text) ||
+      text.includes('认知污染') ||
+      text.includes('不可逆风险') ||
+      text.includes('#FF3B3B')
+    ) {
+      return (
+        <p className="text-[#FF3B3B] font-bold text-sm sm:text-base leading-relaxed my-2.5 flex items-center gap-2" {...props}>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#FF3B3B] inline-block shrink-0 shadow-[0_0_8px_#FF3B3B]" />
+          <span>{children}</span>
+        </p>
+      )
+    }
+
+    // 2. 灵脉绿：已建立灵脉连接、状态激活 (#88CBAA)
+    if (text.includes('已建立') || text.includes('灵脉连接') || text.includes('#88CBAA')) {
+      return (
+        <p className="text-[#88CBAA] font-medium text-sm sm:text-base leading-relaxed my-2.5 flex items-center gap-2" {...props}>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#88CBAA] inline-block shrink-0 shadow-[0_0_8px_#88CBAA]" />
+          <span>{children}</span>
+        </p>
+      )
+    }
+
+    // 3. 科技青：舰载核心、系统提示、能量回路 (#70D8E0)
+    if (/^(?:舰载核心|系统提示|系统广播|核心回路|检测到|侦测到|【核心】|【系统】|【回路】)/.test(text)) {
+      return (
+        <p className="text-[#70D8E0] font-semibold text-sm sm:text-base leading-relaxed my-2" {...props}>
+          {children}
+        </p>
+      )
+    }
+
+    // 4. 次要信息：星历、时间、地点、航行阶段 (#849396)
+    if (/^(?:星历|时间|地点|航行阶段|纪元|世界线|状态码|坐标)/.test(text)) {
+      return (
+        <p className="text-[#849396] text-xs sm:text-sm font-normal tracking-wide my-1.5" {...props}>
+          {children}
+        </p>
+      )
+    }
+
+    // 5. 灵金：重要对白、言灵警示、双引号重要内容 (#E3C362)
+    if (/^“[^”]+”$/.test(text)) {
+      return (
+        <p className="text-[#E3C362] font-bold text-sm sm:text-base leading-relaxed my-2.5 tracking-wide" {...props}>
+          {children}
+        </p>
+      )
+    }
+
+    // 6. 灵紫：道、灵识、深层异象 (#B396F2)
+    if (text.includes('“道”') || text.includes('灵识') || text.includes('苏醒的“道”')) {
+      return (
+        <p className="text-[#B396F2] font-medium text-sm sm:text-base leading-relaxed my-2" {...props}>
+          {children}
+        </p>
+      )
+    }
+
+    // 7. 规则说明落款（重要内容使用灵金，危险与警告使用大红色...）
+    if (text.includes('重要内容使用灵金') || text.includes('危险与警告使用大红色')) {
+      return (
+        <p className="text-[#849396] text-xs leading-relaxed mt-4 pt-2.5 border-t border-[#343b44]/60 italic" {...props}>
+          {children}
+        </p>
+      )
+    }
+
+    // 默认正文 (#E6ECE8 柔白)
+    return (
+      <p className="text-[#E6ECE8] text-[15px] sm:text-base leading-relaxed my-2.5 font-normal" {...props}>
+        {children}
+      </p>
+    )
+  },
   strong: ({ children, ...props }: any) => (
-    <strong className="text-cyan-300 font-bold" {...props}>{children}</strong>
+    <strong className="text-[#E3C362] font-bold" {...props}>{children}</strong>
   ),
   em: ({ children, ...props }: any) => (
-    <em className="text-purple-300 italic" {...props}>{children}</em>
+    <em className="text-[#B396F2] italic font-medium" {...props}>{children}</em>
   ),
   h1: ({ children, ...props }: any) => (
-    <h1 className="text-base font-black text-cyan-300 mt-2 mb-1" {...props}>{children}</h1>
+    <h1 className="text-lg font-black text-[#70D8E0] mt-3.5 mb-1.5" {...props}>{children}</h1>
   ),
   h2: ({ children, ...props }: any) => (
-    <h2 className="text-sm font-black text-cyan-300 mt-2 mb-1" {...props}>{children}</h2>
+    <h2 className="text-base font-black text-[#70D8E0] mt-3 mb-1.5" {...props}>{children}</h2>
   ),
-  h3: ({ children, ...props }: any) => (
-    <h3 className="text-xs font-bold text-cyan-300 uppercase tracking-wide mt-2 mb-1" {...props}>{children}</h3>
-  ),
+  h3: ({ children, ...props }: any) => {
+    const text = extractRawText(children)
+    if (text.includes('你要如何回应') || text.includes('行动指令') || text.includes('选择')) {
+      return (
+        <div className="text-[#70D8E0] font-bold text-base mt-3.5 mb-1.5 flex items-center gap-2">
+          <span>{children}</span>
+        </div>
+      )
+    }
+    return <h3 className="text-sm font-bold text-[#E3C362] mt-3 mb-1" {...props}>{children}</h3>
+  },
   ul: ({ children, ...props }: any) => (
-    <ul className="list-disc pl-5 my-1.5 space-y-1 text-gray-200 text-sm" {...props}>{children}</ul>
+    <div className="my-3 p-3.5 rounded-xl border border-[#363d47] bg-[#25292f] shadow-sm">
+      <ul className="space-y-1.5 list-none m-0 p-0" {...props}>{children}</ul>
+    </div>
   ),
   ol: ({ children, ...props }: any) => (
-    <ol className="list-decimal pl-5 my-1.5 space-y-1 text-gray-200 text-sm" {...props}>{children}</ol>
+    <div className="my-3 p-3.5 rounded-xl border border-[#363d47] bg-[#25292f] shadow-sm">
+      <ol className="space-y-1.5 list-none m-0 p-0" {...props}>{children}</ol>
+    </div>
   ),
-  li: ({ children, ...props }: any) => (
-    <li className="text-gray-200 leading-relaxed text-sm" {...props}>{children}</li>
-  ),
+  li: ({ children, ...props }: any) => {
+    const rawText = extractRawText(children).trim()
+    return (
+      <li
+        onClick={() => handleOptionClick(rawText)}
+        className="flex items-start gap-2.5 py-1.5 px-2 rounded-lg hover:bg-[#2c333f] cursor-pointer transition-colors group select-none text-[#E6ECE8]"
+        title="点击直接填入此行动"
+        {...props}
+      >
+        <span className="w-2 h-2 rounded-full shrink-0 mt-2 inline-block bg-[#70D8E0] group-hover:shadow-[0_0_8px_#70D8E0]" />
+        <span className="leading-relaxed text-sm sm:text-base group-hover:text-white transition-colors">
+          {children}
+        </span>
+      </li>
+    )
+  },
   blockquote: ({ children, ...props }: any) => (
-    <blockquote className="border-l-4 border-cyan-400 bg-cyan-950/40 px-3.5 py-2 my-2 rounded-r-lg text-cyan-100 text-sm font-medium" {...props}>
+    <blockquote className="border-l-4 border-[#70D8E0] bg-[#25292f]/80 px-4 py-2.5 my-3 rounded-r-xl text-[#E6ECE8] text-sm font-medium leading-relaxed" {...props}>
       {children}
     </blockquote>
   ),
   table: ({ children, ...props }: any) => (
-    <div className="overflow-x-auto my-2 rounded-lg border border-purple-500/40 shadow-inner">
+    <div className="overflow-x-auto my-3 rounded-xl border border-[#343b44] shadow-inner bg-[#1a1d22]">
       <table className="w-full text-left text-xs border-collapse" {...props}>{children}</table>
     </div>
   ),
   thead: ({ children, ...props }: any) => (
-    <thead className="bg-[#12192e] text-cyan-300 border-b border-purple-500/30 font-bold" {...props}>{children}</thead>
+    <thead className="bg-[#25292f] text-[#70D8E0] border-b border-[#343b44] font-bold" {...props}>{children}</thead>
   ),
   th: ({ children, ...props }: any) => (
-    <th className="p-2.5 text-cyan-300 font-bold border border-purple-500/20 text-xs" {...props}>{children}</th>
+    <th className="p-2.5 text-[#70D8E0] font-bold border border-[#343b44]/40 text-xs" {...props}>{children}</th>
   ),
   td: ({ children, ...props }: any) => (
-    <td className="p-2.5 text-gray-100 bg-[#070b14]/80 border border-purple-500/15 text-xs font-mono" {...props}>{children}</td>
+    <td className="p-2.5 text-[#E6ECE8] bg-[#1a1d22] border border-[#343b44]/30 text-xs font-mono" {...props}>{children}</td>
   ),
   tr: ({ children, ...props }: any) => (
-    <tr className="border-b border-purple-500/15 hover:bg-purple-950/25 transition-colors" {...props}>{children}</tr>
+    <tr className="border-b border-[#343b44]/30 hover:bg-[#25292f]/60 transition-colors" {...props}>{children}</tr>
   ),
   code: ({ children, ...props }: any) => (
-    <code className="bg-black/70 text-yellow-300 px-1.5 py-0.5 rounded text-xs font-mono border border-white/10" {...props}>{children}</code>
+    <code className="bg-[#25292f] text-[#E3C362] px-1.5 py-0.5 rounded text-xs font-mono border border-[#363d47]" {...props}>{children}</code>
   ),
   pre: ({ children, ...props }: any) => (
-    <pre className="bg-black/90 text-cyan-200 p-3 rounded-lg border border-cyan-500/30 text-xs font-mono overflow-x-auto my-2" {...props}>{children}</pre>
+    <pre className="bg-[#13161c] text-[#70D8E0] p-3.5 rounded-xl border border-[#343b44] text-xs font-mono overflow-x-auto my-2.5" {...props}>{children}</pre>
   ),
-  hr: () => <hr className="border-purple-500/20 my-3" />,
+  hr: () => <hr className="border-[#343b44] my-3.5" />,
   a: ({ href, children, ...props }: any) => {
     if (href && (href.startsWith('#t-') || href.startsWith('#t_'))) {
       const clsName = href.slice(1)
@@ -177,14 +298,14 @@ const darkStreamdownComponents = {
       )
     }
     return (
-      <a href={href} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 underline font-medium" {...props}>
+      <a href={href} target="_blank" rel="noreferrer" className="text-[#70D8E0] hover:underline font-medium" {...props}>
         {children}
       </a>
     )
   },
 }
 
-// Custom Collapsible Details Card (风月同款折叠面板)
+// Custom Collapsible Details Card (系统推演 / 状态栏折叠卡)
 const CollapsibleDetailsCard: FC<{
   summary: string
   content: string
@@ -193,7 +314,7 @@ const CollapsibleDetailsCard: FC<{
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className="my-3 rounded-xl border border-purple-500/50 bg-[#0c1222] text-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)] backdrop-blur-md overflow-hidden transition-all duration-200 hover:border-purple-400">
+    <div className="my-3 rounded-xl border border-[#343b44] bg-[#1a1d22] text-[#E6ECE8] shadow-xl overflow-hidden transition-all duration-200 hover:border-[#70D8E0]/40">
       {/* 折叠栏头部 */}
       <div
         role="button"
@@ -203,15 +324,15 @@ const CollapsibleDetailsCard: FC<{
           if (e.key === 'Enter' || e.key === ' ')
             setIsOpen(!isOpen)
         }}
-        className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 bg-gradient-to-r from-purple-950/80 via-[#0f172a] to-purple-950/60 hover:from-purple-900/80 hover:to-purple-900/60 cursor-pointer select-none transition-colors border-b border-purple-500/30"
+        className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 bg-[#25292f] hover:bg-[#2c333f] cursor-pointer select-none transition-colors border-b border-[#363d47]"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] shrink-0" />
-          <span className="font-bold text-sm text-cyan-200 truncate tracking-wide">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#88CBAA] shadow-[0_0_8px_#88CBAA] shrink-0" />
+          <span className="font-bold text-sm text-[#70D8E0] truncate tracking-wide">
             {summary}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0 text-xs text-purple-200 font-bold bg-purple-900/80 px-2.5 py-1 rounded-md border border-purple-400/50 shadow-sm">
+        <div className="flex items-center gap-1.5 shrink-0 text-xs text-[#849396] font-bold bg-[#1a1d22] px-2.5 py-1 rounded-md border border-[#363d47] shadow-sm">
           <span>{isOpen ? '点击收起' : '点击展开'}</span>
           <span className={cn('transform transition-transform duration-200 text-[10px]', isOpen ? 'rotate-180' : 'rotate-0')}>
             ▼
@@ -219,13 +340,13 @@ const CollapsibleDetailsCard: FC<{
         </div>
       </div>
 
-      {/* 折叠内容区域（纯净暗黑赛博风格，高对比度亮色文本） */}
+      {/* 折叠内容区域 */}
       {isOpen && (
-        <div className="p-4 bg-[#070b14] text-sm text-gray-100 space-y-2 border-t border-purple-500/20">
+        <div className="p-4 bg-[#16191f] text-sm text-[#E6ECE8] space-y-2 border-t border-[#343b44]">
           {content ? (
-            <Streamdown components={darkStreamdownComponents}>{content}</Streamdown>
+            <Streamdown components={storyDarkComponents}>{content}</Streamdown>
           ) : (
-            <div className="text-gray-400 text-xs italic">暂无内容</div>
+            <div className="text-[#849396] text-xs italic">暂无内容</div>
           )}
         </div>
       )}
@@ -233,7 +354,7 @@ const CollapsibleDetailsCard: FC<{
   )
 }
 
-// 💭 深度思考折叠卡片（风月专属暗黑赛博风格）
+// 💭 深度思考折叠卡片
 const CollapsibleThinkCard: FC<{
   content: string
   isThinking?: boolean
@@ -241,7 +362,7 @@ const CollapsibleThinkCard: FC<{
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="my-2.5 rounded-xl border border-purple-500/30 bg-[#070b16]/90 overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.3)] transition-all">
+    <div className="my-2.5 rounded-xl border border-[#343b44] bg-[#1a1d22] overflow-hidden shadow-md transition-all">
       <div
         role="button"
         tabIndex={0}
@@ -250,21 +371,21 @@ const CollapsibleThinkCard: FC<{
           if (e.key === 'Enter' || e.key === ' ')
             setIsOpen(!isOpen)
         }}
-        className="w-full flex items-center justify-between px-3.5 py-2 select-none cursor-pointer bg-gradient-to-r from-purple-950/40 via-[#0d1324] to-purple-950/30 hover:from-purple-900/40 hover:to-purple-900/30 border-b border-purple-500/20 transition-colors"
+        className="w-full flex items-center justify-between px-3.5 py-2 select-none cursor-pointer bg-[#25292f] hover:bg-[#2c333f] border-b border-[#363d47] transition-colors"
       >
         <div className="flex items-center gap-2">
           <span className="text-sm">💭</span>
-          <span className="text-xs font-semibold text-purple-300 tracking-wide">
+          <span className="text-xs font-semibold text-[#B396F2] tracking-wide">
             {isThinking ? '深度思考演算中...' : '深度思考演算过程'}
           </span>
           {isThinking && (
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#70D8E0] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#70D8E0]"></span>
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium">
+        <div className="flex items-center gap-1.5 text-[11px] text-[#849396] font-medium">
           <span>{isOpen ? '收起思考' : '展开思考'}</span>
           <svg
             className={cn('w-3.5 h-3.5 transition-transform duration-200', isOpen && 'rotate-180')}
@@ -278,7 +399,7 @@ const CollapsibleThinkCard: FC<{
       </div>
 
       {isOpen && (
-        <div className="p-3.5 bg-black/60 text-xs text-gray-300 font-mono leading-relaxed whitespace-pre-wrap max-h-[350px] overflow-y-auto border-t border-purple-500/10">
+        <div className="p-3.5 bg-[#13161c] text-xs text-[#849396] font-mono leading-relaxed whitespace-pre-wrap max-h-[350px] overflow-y-auto border-t border-[#343b44]">
           {content}
         </div>
       )}
@@ -290,85 +411,11 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
   const { thinkContent, isThinking, remainingText } = useMemo(() => extractThink(content || ''), [content])
   const segments = useMemo(() => parseSegments(remainingText || ''), [remainingText])
 
-  const lightComponents = useMemo(() => ({
-    p: ({ children, ...props }: any) => (
-      <p className="text-gray-900 leading-relaxed my-2 text-sm font-normal" {...props}>{children}</p>
-    ),
-    strong: ({ children, ...props }: any) => (
-      <strong className="text-purple-900 font-bold" {...props}>{children}</strong>
-    ),
-    em: ({ children, ...props }: any) => (
-      <em className="text-purple-700 italic" {...props}>{children}</em>
-    ),
-    h1: ({ children, ...props }: any) => (
-      <h1 className="text-lg font-black text-gray-900 mt-3 mb-1.5" {...props}>{children}</h1>
-    ),
-    h2: ({ children, ...props }: any) => (
-      <h2 className="text-base font-black text-purple-950 mt-3 mb-1.5" {...props}>{children}</h2>
-    ),
-    h3: ({ children, ...props }: any) => (
-      <h3 className="text-sm font-bold text-purple-900 mt-2.5 mb-1" {...props}>{children}</h3>
-    ),
-    ul: ({ children, ...props }: any) => (
-      <ul className="list-disc pl-5 my-2 space-y-1 text-gray-900 text-sm" {...props}>{children}</ul>
-    ),
-    ol: ({ children, ...props }: any) => (
-      <ol className="list-decimal pl-5 my-2 space-y-1 text-gray-900 text-sm" {...props}>{children}</ol>
-    ),
-    li: ({ children, ...props }: any) => (
-      <li className="text-gray-900 leading-relaxed text-sm" {...props}>{children}</li>
-    ),
-    blockquote: ({ children, ...props }: any) => (
-      <blockquote className="border-l-4 border-purple-600 bg-purple-50/90 px-3.5 py-2.5 my-2 rounded-r-lg text-gray-900 text-sm font-medium" {...props}>
-        {children}
-      </blockquote>
-    ),
-    table: ({ children, ...props }: any) => (
-      <div className="overflow-x-auto my-2 rounded-lg border border-gray-200">
-        <table className="w-full text-left text-xs border-collapse" {...props}>{children}</table>
-      </div>
-    ),
-    thead: ({ children, ...props }: any) => (
-      <thead className="bg-purple-50 text-purple-950 border-b border-gray-200 font-bold" {...props}>{children}</thead>
-    ),
-    th: ({ children, ...props }: any) => (
-      <th className="p-2.5 text-purple-950 font-bold border border-gray-200 text-xs" {...props}>{children}</th>
-    ),
-    td: ({ children, ...props }: any) => (
-      <td className="p-2.5 text-gray-900 bg-white border border-gray-100 text-xs" {...props}>{children}</td>
-    ),
-    tr: ({ children, ...props }: any) => (
-      <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors" {...props}>{children}</tr>
-    ),
-    code: ({ children, ...props }: any) => (
-      <code className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs font-mono border border-purple-200" {...props}>{children}</code>
-    ),
-    pre: ({ children, ...props }: any) => (
-      <pre className="bg-[#0b1020] text-cyan-200 p-3 rounded-lg border border-purple-500/30 text-xs font-mono overflow-x-auto my-2" {...props}>{children}</pre>
-    ),
-    hr: () => <hr className="border-gray-200 my-3" />,
-    a: ({ href, children, ...props }: any) => {
-      if (href && (href.startsWith('#t-') || href.startsWith('#t_'))) {
-        const clsName = href.slice(1)
-        return (
-          <span className={`inline-block font-bold ${clsName}`}>
-            {children}
-          </span>
-        )
-      }
-      return (
-        <a href={href} target="_blank" rel="noreferrer" className="text-purple-600 hover:text-purple-800 underline font-medium" {...props}>
-          {children}
-        </a>
-      )
-    },
-  }), [])
-
   // If there are no think and no details blocks, render directly
   if (!thinkContent && segments.length === 1 && segments[0].type === 'text') {
     return (
       <div className={`streamdown-markdown ${className}`}>
-        <Streamdown components={lightComponents}>{segments[0].content}</Streamdown>
+        <Streamdown components={storyDarkComponents}>{segments[0].content}</Streamdown>
       </div>
     )
   }
@@ -392,7 +439,7 @@ export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdo
         }
         return (
           <div key={`text-${idx}`}>
-            <Streamdown components={lightComponents}>{seg.content}</Streamdown>
+            <Streamdown components={storyDarkComponents}>{seg.content}</Streamdown>
           </div>
         )
       })}

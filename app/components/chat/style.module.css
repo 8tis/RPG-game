@@ -5,8 +5,8 @@
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(147, 51, 234, 0.4);
-  border: 1.5px solid rgba(147, 51, 234, 0.6);
+  box-shadow: 0 0 10px rgba(112, 216, 224, 0.4);
+  border: 1.5px solid rgba(112, 216, 224, 0.6);
 }
 
 .typeingIcon {
@@ -18,8 +18,9 @@
   align-items: center;
   width: 16px;
   height: 16px;
-  background: #FFFFFF;
-  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
+  background: #1a1d22;
+  border: 1px solid #343b44;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
   border-radius: 16px;
 }
 
@@ -28,33 +29,12 @@
   background: url(./icons/default-avatar.jpg);
   background-size: contain;
   border-radius: 50%;
+  border: 1.5px solid rgba(227, 195, 98, 0.5);
 }
 
 .answer::before,
 .question::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  width: 8px;
-  height: 12px;
-}
-
-.answer::before {
-  left: 0;
-  background: url(./icons/answer.svg) no-repeat;
-}
-
-.answerWrap .itemOperation {
   display: none;
-}
-
-.answerWrap:hover .itemOperation {
-  display: flex;
-}
-
-.question::before {
-  right: 0;
-  background: url(./icons/question.svg) no-repeat;
 }
 
 .textArea {
