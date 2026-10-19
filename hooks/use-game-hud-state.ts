@@ -165,7 +165,13 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
 
     // 从最近的消息向后提取状态信息
     for (let i = assistantMessages.length - 1; i >= 0; i--) {
-      const content = assistantMessages[i].content
+      const rawContent = assistantMessages[i].content || ''
+
+      // 核心净化：彻底剔除思考链与内部推演步骤，杜绝AI的草稿/动作步骤泄露为装备或属性
+      const content = rawContent
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/<think>[\s\S]*$/gi, '')
+        .replace(/🔄\s*系统核心演算逻辑[\s\S]*?(?=📖|#|<details|$)/gi, '')
 
       // HP
       if (!hasHp) {
@@ -221,31 +227,62 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
       const worldMatch = content.match(/【当前世界与偏移】\s*([^|｜\n]+)/)
       if (worldMatch) world = worldMatch[1].trim()
 
-      // 装备列表
+      // 装备列表：仅在玩家档案作用域中严格匹配，过滤提示词思考草稿
       if (equipment.length === 0) {
-        const eqSection = content.match(/【(?:装备|已装备|当前佩戴)】([\s\S]*?)(?=【|<\/details>|$)/)
+        const profileScopeMatch = content.match(/<details[^>]*>\s*<summary>[^<]*?(?:玩家档案|角色档案|属性面板)[^<]*<\/summary>([\s\S]*?)(?:<\/details>|$)/i)
+        const scope = profileScopeMatch ? profileScopeMatch[1] : content
+
+        const eqSection = scope.match(/【(?:装备|已装备|当前佩戴)】([\s\S]*?)(?=【|<\/details>|$)/)
         if (eqSection) {
+          const validSlots = new Set(['武器', '主手', '主手武器', '副手', '副手武器', '防具', '护甲', '作战服', '外套', '饰品', '头部', '胸部', '腿部', '随身武器', '随身装备', '法宝', '特殊', '装备'])
+          const invalidKeywords = ['字数', '风格', '步骤', '动作', '注意', 'draft', '考虑', '逻辑', '输出', '描写', '分析', '确认', '可能', '并未', '熟练地', '滑入', '指路']
+
           const lines = eqSection[1].split('\n')
           for (let l of lines) {
             l = l.trim().replace(/^[-*•\s]+/, '')
             if (!l || l.includes('</details>') || l.includes('<details>')) continue
+            l = l.replace(/^\*\*(.*?)\*\*$/, '$1').trim()
+            if (invalidKeywords.some(kw => l.toLowerCase().includes(kw))) continue
+
             if (l.includes(':') || l.includes('：')) {
               const parts = l.split(/[:：]/)
-              equipment.push({ slot: parts[0].trim(), name: parts.slice(1).join(':').trim() })
-            } else {
-              equipment.push({ slot: '随身武器', name: l })
+              const slot = parts[0].trim().replace(/\*/g, '')
+              const name = parts.slice(1).join(':').trim().replace(/\*/g, '')
+              if ((validSlots.has(slot) || slot.length <= 6) && name.length > 0 && name.length < 50) {
+                equipment.push({ slot: slot || '随身武器', name })
+              }
+            } else if (l.length > 0 && l.length < 40) {
+              equipment.push({ slot: '随身武器', name: l.replace(/\*/g, '') })
+            }
+          }
+        }
+
+        // 若【装备】栏未列出但【随身背包】中有明确标记的装备
+        if (equipment.length === 0) {
+          const invEqMatch = scope.match(/[-*•\s]*\*{0,2}(?:装备|随身武器)\*{0,2}[:：]\s*\*{0,2}([^\n*]+)/i)
+          if (invEqMatch) {
+            const eqName = invEqMatch[1].trim().replace(/\*/g, '')
+            if (eqName.length > 0 && eqName.length < 50) {
+              equipment.push({ slot: '随身武器', name: eqName })
             }
           }
         }
       }
 
-      // 天赋词条
+      // 天赋词条：清洗掉 Markdown 加粗和多余中括号
       if (skills.length <= 1) {
         const traitMatches = content.matchAll(/\[\s*([蓝金紫绿红白橙灰黑])\s*\]\s*([^\n<]+)/g)
         for (const tm of traitMatches) {
           const grade = tm[1]
-          const tname = tm[2].trim()
-          if (!skills.some(s => s.name === tname)) {
+          const rawName = tm[2].trim()
+          const traitMatch = rawName.match(/^\*{0,2}\[?\s*(.*?)\s*\]?\*{0,2}(?:[:：]\s*(.*))?$/)
+          let tname = rawName
+          if (traitMatch && traitMatch[1]) {
+            tname = traitMatch[1].replace(/\*/g, '').trim()
+          } else {
+            tname = tname.replace(/\*/g, '').trim()
+          }
+          if (tname && !skills.some(s => s.name === tname)) {
             skills.push({
               grade,
               name: tname,
@@ -255,7 +292,7 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
         }
       }
 
-      // 背包物品
+      // 背包物品：清洗掉类似 **装备**: 或 **消耗品**: 前缀与加粗符号
       if (inventory.length === 0) {
         const invSection = content.match(/【(?:随身背包|物品栏|背包|行囊)】([\s\S]*?)(?=【|<\/details>|$)/)
         if (invSection) {
@@ -263,7 +300,15 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
           for (let l of lines) {
             l = l.trim().replace(/^[-*•\s]+/, '')
             if (!l || l.includes('</details>') || l.includes('<details>') || l.includes('<summary>')) continue
-            const cntMatch = l.match(/^(.*?)\s*[xX*×]\s*(\d+)$/)
+
+            // 剥离类别前缀
+            const catMatch = l.match(/^\*{0,2}(?:装备|消耗品|道具|杂物|材料|特殊物品|物品)\*{0,2}[:：]\s*(.+)$/)
+            if (catMatch) {
+              l = catMatch[1].trim()
+            }
+            l = l.replace(/\*\*/g, '').trim()
+
+            const cntMatch = l.match(/^(.*?)\s*[xX*×]\s*([0-9\.]+(?:[^\s]+)?)$/)
             if (cntMatch) {
               inventory.push({ name: cntMatch[1].trim(), count: cntMatch[2].trim() })
             } else {
@@ -290,7 +335,8 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
           const npcBody = npcMatch[2]
 
           let affinity = 35
-          const affMatch = npcBody.match(/好感度[:\s]*(\d+)/)
+          // 兼容 好感度: 77 或 【关系】玩家: **77/100**
+          const affMatch = npcBody.match(/(?:好感度|好感|羁绊|关系[^\n]*?)[:\s]*\*{0,2}(\d+)(?:\s*\/\s*100)?/)
           if (affMatch) affinity = parseInt(affMatch[1], 10)
 
           let relation = '中立信赖'
@@ -303,7 +349,9 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
 
           let title = '剧情随行伙伴'
           const locMatch = npcBody.match(/【定位】([^\n]+)/)
-          if (locMatch) title = locMatch[1].trim()
+          if (locMatch) {
+            title = locMatch[1].replace(/[\[\]{}*]/g, '').trim()
+          }
 
           // 提取机密情报
           let classifiedIntel: { trigger: string; detail: string } | undefined
