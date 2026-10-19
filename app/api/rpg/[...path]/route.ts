@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 const RPG_BACKEND_URL = process.env.RPG_API_BACKEND_URL || 'http://47.122.116.72:8080/rpg-api'
 
-async function handleProxy(request: NextRequest, props: { params: Promise<{ path: string[] }> | { path: string[] } }) {
+async function handleProxy(request: NextRequest, props: { params: Promise<{ path: string[] }> }) {
   const params = await props.params
   const path = (params.path || []).join('/')
   const search = request.nextUrl.search

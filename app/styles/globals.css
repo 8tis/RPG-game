@@ -123,3 +123,32 @@ a {
   font-weight: 600;
 }
 
+/* 磨砂玻璃 / 玻璃拟态视觉 (1:1 还原参考项目) */
+.frosted-theme-card {
+  background-color: rgba(22, 26, 34, 0.78);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.frosted-theme-input {
+  background-color: rgba(14, 17, 22, 0.85) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* 优雅平滑定制滚动条 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(112, 216, 224, 0.4);
+}

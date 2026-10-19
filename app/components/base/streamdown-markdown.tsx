@@ -8,6 +8,7 @@ import cn from 'classnames'
 interface StreamdownMarkdownProps {
   content: string
   className?: string
+  hideChoicesInText?: boolean
 }
 
 interface Segment {
@@ -588,7 +589,48 @@ const CollapsibleDetailsCard: FC<{
     )
   }
 
+  // 识别是否属于已移至左侧HUD侧边栏的固定面板 (玩家档案 / 系统面板)
+  const isFixedHudPanel =
+    cleanSummary.includes('玩家档案') ||
+    cleanSummary.includes('系统面板') ||
+    cleanSummary.includes('角色档案') ||
+    cleanSummary.includes('属性面板')
+
   const [isOpen, setIsOpen] = useState(defaultOpen)
+
+  if (isFixedHudPanel) {
+    return (
+      <div className="my-2 p-2.5 rounded-xl bg-slate-900/50 border border-white/5 hover:border-white/15 transition-all select-none">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">📊</span>
+            <span className="font-bold text-xs text-slate-300">
+              {cleanSummary}
+            </span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono">
+              已同步至左侧HUD
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-[11px] text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <span>{isOpen ? '收起详情' : '展开原始数据'}</span>
+            <span className="text-[10px] font-mono">{isOpen ? '▲' : '▼'}</span>
+          </button>
+        </div>
+
+        {isOpen && (
+          <div className="mt-2.5 pt-2.5 border-t border-white/5 text-xs text-slate-300 space-y-1">
+            <Streamdown components={storyDarkComponents}>
+              {cleanAndTransformContent(content)}
+            </Streamdown>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="my-3 rounded-xl border border-[#343b44] bg-[#1a1d22] hover:border-[#70D8E0]/40 overflow-hidden shadow-lg transition-all duration-200">
@@ -598,6 +640,7 @@ const CollapsibleDetailsCard: FC<{
         tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={(e) => {
+
           if (e.key === 'Enter' || e.key === ' ')
             setIsOpen(!isOpen)
         }}
@@ -687,8 +730,18 @@ const CollapsibleThinkCard: FC<{
   )
 }
 
-export function StreamdownMarkdown({ content, className = '' }: StreamdownMarkdownProps) {
-  const { thinkContent, isThinking, remainingText } = useMemo(() => extractThink(content || ''), [content])
+export function StreamdownMarkdown({ content, className = '', hideChoicesInText = false }: StreamdownMarkdownProps) {
+  const processedRaw = useMemo(() => {
+    if (!hideChoicesInText || !content) return content
+    let text = content
+    const choiceHeadingIdx = text.search(/🎲\s*(?:行动指令与决策引导|决策引导|行动指令|行动抉择)/)
+    if (choiceHeadingIdx !== -1) {
+      text = text.slice(0, choiceHeadingIdx).trim()
+    }
+    return text
+  }, [content, hideChoicesInText])
+
+  const { thinkContent, isThinking, remainingText } = useMemo(() => extractThink(processedRaw || ''), [processedRaw])
   const segments = useMemo(() => parseSegments(remainingText || ''), [remainingText])
 
   // If there are no think and no details blocks, render directly

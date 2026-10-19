@@ -733,7 +733,7 @@ const Main: FC<IMainProps> = () => {
           </div>
         )}
         {/* main */}
-        <div className='flex-grow flex flex-col h-[calc(100vh_-_3rem)] overflow-y-auto'>
+        <div className='flex-grow flex flex-col h-[calc(100vh_-_3rem)] overflow-hidden'>
           {(promptConfig?.prompt_variables || []).length > 0 && (
             <ConfigSence
               conversationName={conversationName}
@@ -749,7 +749,7 @@ const Main: FC<IMainProps> = () => {
           )}
 
           {((promptConfig?.prompt_variables || []).length === 0 || hasSetInputs) && (
-            <div className='relative grow pc:w-[794px] max-w-full mobile:w-full pb-[180px] mx-auto mb-3.5' ref={chatListDomRef}>
+            <div className='relative grow w-full h-full max-w-[1600px] mx-auto p-1.5 sm:p-3 overflow-hidden' ref={chatListDomRef}>
               <Chat
                 chatList={chatList}
                 isNewConversation={isNewConversation}

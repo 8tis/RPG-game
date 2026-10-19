@@ -202,7 +202,7 @@ const Answer: FC<IAnswerProps> = ({
                 : (isAgentMode
                   ? agentModeAnswer
                   : (content ? (
-                    <StreamdownMarkdown content={content} />
+                    <StreamdownMarkdown content={content} hideChoicesInText={true} />
                   ) : (
                     <div className="py-2 px-3 rounded-lg bg-red-950/20 border border-red-500/30 text-xs text-red-300 flex items-center gap-2">
                       <span className="text-red-400">⚠️</span>
