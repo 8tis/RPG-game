@@ -54,7 +54,7 @@ const Chat: FC<IChatProps> = ({
   const { notify } = Toast
 
   // 游戏核心状态解析器（实时单向数据流与单一大脑数据源）
-  const hudState = useGameHudState(chatList)
+  const hudState = useGameHudState(chatList, isResponding)
 
   // 模态框与抽屉状态管理
   const [showBackpackModal, setShowBackpackModal] = useState(false)

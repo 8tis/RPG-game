@@ -104,6 +104,11 @@ function cleanAndTransformContent(raw: string): string {
     .replace(/<\/?p[^>]*>/gi, '\n')
     .replace(/<br\s*\/?>/gi, '\n')
 
+  // 5. 彻底过滤已移至左侧HUD侧边栏的孤立状态栏标题（如 📊 多维系统状态栏）
+  text = text
+    .replace(/^[#\s]*📊\s*(?:多维系统状态栏|系统状态栏|玩家状态栏|多维状态栏)[^\n]*\n*/gim, '')
+    .replace(/^[#\s]*【(?:多维系统状态栏|系统状态栏|玩家状态栏|多维状态栏)】[^\n]*\n*/gim, '')
+
   return text
 }
 
@@ -589,48 +594,20 @@ const CollapsibleDetailsCard: FC<{
     )
   }
 
-  // 识别是否属于已移至左侧HUD侧边栏的固定面板 (玩家档案 / 系统面板)
+  // 识别是否属于已移至左侧HUD侧边栏的固定面板 (玩家档案 / 系统面板 / 属性面板 / 状态栏)
   const isFixedHudPanel =
     cleanSummary.includes('玩家档案') ||
     cleanSummary.includes('系统面板') ||
     cleanSummary.includes('角色档案') ||
-    cleanSummary.includes('属性面板')
-
-  const [isOpen, setIsOpen] = useState(defaultOpen)
+    cleanSummary.includes('属性面板') ||
+    cleanSummary.includes('状态栏') ||
+    cleanSummary.includes('数据看板')
 
   if (isFixedHudPanel) {
-    return (
-      <div className="my-2 p-2.5 rounded-xl bg-slate-900/50 border border-white/5 hover:border-white/15 transition-all select-none">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">📊</span>
-            <span className="font-bold text-xs text-slate-300">
-              {cleanSummary}
-            </span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono">
-              已同步至左侧HUD
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-[11px] text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
-          >
-            <span>{isOpen ? '收起详情' : '展开原始数据'}</span>
-            <span className="text-[10px] font-mono">{isOpen ? '▲' : '▼'}</span>
-          </button>
-        </div>
-
-        {isOpen && (
-          <div className="mt-2.5 pt-2.5 border-t border-white/5 text-xs text-slate-300 space-y-1">
-            <Streamdown components={storyDarkComponents}>
-              {cleanAndTransformContent(content)}
-            </Streamdown>
-          </div>
-        )}
-      </div>
-    )
+    return null
   }
+
+  const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
     <div className="my-3 rounded-xl border border-[#343b44] bg-[#1a1d22] hover:border-[#70D8E0]/40 overflow-hidden shadow-lg transition-all duration-200">

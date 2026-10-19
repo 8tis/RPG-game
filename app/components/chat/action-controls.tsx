@@ -85,29 +85,37 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
 
   return (
     <div className="mt-2 pt-2 border-t border-white/10 flex-shrink-0" id="action-controls">
-      {/* Upper Layer: Dynamic Story Choices Grid (A/B/C/D) */}
-      {choices && choices.length > 0 && (
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-h-[26vh] overflow-y-auto pr-1 mb-2 custom-scrollbar"
-          id="choices-container"
-        >
-          {choices.map((choice) => (
-            <button
-              key={choice.key}
-              onClick={() => handleChoiceClick(choice)}
-              disabled={isResponding}
-              type="button"
-              className="group p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800/90 active:scale-[0.98] border border-white/10 hover:border-[#70D8E0]/60 transition-all duration-200 text-left flex items-start gap-2.5 cursor-pointer shadow-md text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="w-5 h-5 rounded-md bg-[#70D8E0]/15 group-hover:bg-[#70D8E0]/30 text-[#70D8E0] border border-[#70D8E0]/40 font-mono font-black flex items-center justify-center text-xs shrink-0 mt-0.5 transition-colors">
-                {choice.key}
-              </span>
-              <span className="text-[#E6ECE8] group-hover:text-white font-medium leading-relaxed flex-1">
-                {choice.label}
-              </span>
-            </button>
-          ))}
+      {/* Upper Layer: Dynamic Story Choices Grid or Calculating State */}
+      {isResponding ? (
+        <div className="w-full p-2.5 rounded-xl bg-slate-900/50 border border-[#70D8E0]/30 flex items-center justify-center gap-2.5 text-xs text-[#70D8E0] mb-2 animate-pulse select-none shadow-inner">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#70D8E0] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#70D8E0]"></span>
+          </span>
+          <span>主神空间正在演变世界因果与行动决策分支...</span>
         </div>
+      ) : (
+        choices && choices.length > 0 && (
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-h-[26vh] overflow-y-auto pr-1 mb-2 custom-scrollbar"
+            id="choices-container"
+          >
+            {choices.map((choice, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleChoiceClick(choice)}
+                disabled={isResponding}
+                type="button"
+                className="group p-2.5 rounded-xl bg-slate-900/70 hover:bg-slate-800/90 active:scale-[0.98] border border-white/10 hover:border-[#70D8E0]/60 transition-all duration-200 text-left flex items-start gap-2 cursor-pointer shadow-md text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="text-[#70D8E0] text-xs mt-0.5 shrink-0 opacity-70 group-hover:opacity-100">✦</span>
+                <span className="text-[#E6ECE8] group-hover:text-white font-medium leading-relaxed flex-1">
+                  {choice.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        )
       )}
 
       {/* Lower Layer: Survival Action Capsule Bar */}
@@ -115,46 +123,12 @@ export const ActionControls: React.FC<ActionControlsProps> = ({
         className="w-full p-2 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md flex items-center justify-between gap-2 flex-wrap text-xs select-none transition-all duration-300"
         id="survival-capsule-bar"
       >
-        {/* Left: Core Action Capsule Buttons */}
+        {/* Left: Core Action Capsule Buttons (去除了露营、整理行囊、搜刮四周) */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
-            onClick={() => handleQuickAction('【行动：寻找安全隐蔽点原地休整，调整状态】')}
-            disabled={isResponding}
-            className="px-2.5 py-1.5 rounded-lg font-bold bg-orange-600/20 hover:bg-orange-600/40 text-orange-300 hover:text-orange-200 border border-orange-500/30 active:scale-95 transition-all duration-200 flex items-center gap-1 cursor-pointer shadow-sm disabled:opacity-50"
-            id="capsule-btn-camp"
-            title="露营休整 / 恢复生理精力"
-            type="button"
-          >
-            <span>⛺</span>
-            <span>露营休整</span>
-          </button>
-
-          <button
-            onClick={onOpenBackpack}
-            className="px-2.5 py-1.5 rounded-lg font-bold bg-slate-800/70 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-white/10 active:scale-95 transition-all duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
-            id="capsule-btn-inventory"
-            title="查看并整理随身背包物资"
-            type="button"
-          >
-            <span>🎒</span>
-            <span>整理行囊</span>
-          </button>
-
-          <button
-            onClick={() => handleQuickAction('【行动：仔细搜刮四周环境废墟与可利用物资】')}
-            disabled={isResponding}
-            className="px-2.5 py-1.5 rounded-lg font-bold bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 hover:text-amber-200 border border-amber-500/30 active:scale-95 transition-all duration-200 flex items-center gap-1 cursor-pointer shadow-sm disabled:opacity-50"
-            id="capsule-btn-scavenge"
-            title="搜刮四周环境与可利用物资"
-            type="button"
-          >
-            <span>🔍</span>
-            <span>搜刮四周</span>
-          </button>
-
-          <button
             onClick={onOpenShop}
-            className="px-2.5 py-1.5 rounded-lg font-bold bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-300 hover:text-yellow-200 border border-yellow-500/30 active:scale-95 transition-all duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
+            disabled={isResponding}
+            className="px-2.5 py-1.5 rounded-lg font-bold bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-300 hover:text-yellow-200 border border-yellow-500/30 active:scale-95 transition-all duration-200 flex items-center gap-1 cursor-pointer shadow-sm disabled:opacity-50"
             id="capsule-btn-shop"
             title="打开主神位面兑换商城"
             type="button"

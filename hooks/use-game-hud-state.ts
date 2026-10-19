@@ -83,7 +83,7 @@ const GRADE_COLOR_MAP: Record<string, string> = {
   '白': 'border-slate-400/50 bg-slate-500/15 text-slate-300',
 }
 
-export function useGameHudState(chatList: ChatItem[]): GameHudState {
+export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): GameHudState {
   return useMemo(() => {
     // 默认保底状态
     let playerName = '轮回者'
@@ -133,27 +133,31 @@ export function useGameHudState(chatList: ChatItem[]): GameHudState {
       }
     }
 
-    // 2. 逆序扫描所有 AI 回复（最新的回复优先级最高）
+    // 2. 提取最新的选项 (A/B/C/D)
+    // 严格限制：必须从 🎲 行动指令与决策引导 区域提取，绝不从思考链或前置推演中提取
     const assistantMessages = chatList.filter(item => item.isAnswer && item.content)
     const latestAnswer = assistantMessages[assistantMessages.length - 1]?.content || ''
 
-    // 提取最新的选项 (A/B/C/D)
     if (latestAnswer) {
-      const choiceLines = latestAnswer.match(/^[A-Da-d1-4]\s*[\.\、\:\：]\s*(.+)$/gm)
-      if (choiceLines && choiceLines.length > 0) {
-        const letterKeys = ['A', 'B', 'C', 'D']
-        let choiceIndex = 0
-        for (const line of choiceLines) {
-          const cleanLine = line.replace(/^[A-Da-d1-4]\s*[\.\、\:\：]\s*/, '').trim()
-          if (cleanLine.includes('自由输入') || cleanLine.includes('✍️')) continue
-          if (choiceIndex < 4) {
-            const key = letterKeys[choiceIndex]
-            latestChoices.push({
-              key,
-              label: cleanLine,
-              actionText: `${key}. ${cleanLine}`,
-            })
-            choiceIndex++
+      const choiceHeadingMatch = latestAnswer.match(/(?:🎲|【)\s*(?:行动指令与决策引导|决策引导|行动指令|行动抉择|行动指南|可选行动)[\s\S]*$/i)
+      if (choiceHeadingMatch) {
+        const decisionText = choiceHeadingMatch[0]
+        const lines = decisionText.split('\n')
+        for (const line of lines) {
+          const cleanLine = line.trim()
+          const m = cleanLine.match(/^[A-Da-d1-4]\s*[\.\、\:\：]\s*(.+)$/)
+          if (m) {
+            let label = m[1].trim()
+            // 剥离 Markdown 加粗标签 **...**
+            label = label.replace(/^\*\*(.*?)\*\*$/, '$1').trim()
+            if (label.includes('自由输入') || label.includes('✍️')) continue
+            if (latestChoices.length < 4) {
+              latestChoices.push({
+                key: String(latestChoices.length + 1),
+                label,
+                actionText: label,
+              })
+            }
           }
         }
       }
@@ -386,5 +390,5 @@ export function useGameHudState(chatList: ChatItem[]): GameHudState {
       activeCompanion,
       latestChoices,
     }
-  }, [chatList])
+  }, [chatList, isResponding])
 }
