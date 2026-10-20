@@ -134,30 +134,39 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
     }
 
     // 2. 提取最新的选项 (A/B/C/D)
-    // 严格限制：必须从 🎲 行动指令与决策引导 区域提取，绝不从思考链或前置推演中提取
+    // 严格限制：必须从决策引导区域提取，先净化思考链与内部推演逻辑
     const assistantMessages = chatList.filter(item => item.isAnswer && item.content)
-    const latestAnswer = assistantMessages[assistantMessages.length - 1]?.content || ''
+    const rawLatestAnswer = assistantMessages[assistantMessages.length - 1]?.content || ''
 
-    if (latestAnswer) {
-      const choiceHeadingMatch = latestAnswer.match(/(?:🎲|【)\s*(?:行动指令与决策引导|决策引导|行动指令|行动抉择|行动指南|可选行动)[\s\S]*$/i)
-      if (choiceHeadingMatch) {
-        const decisionText = choiceHeadingMatch[0]
-        const lines = decisionText.split('\n')
-        for (const line of lines) {
-          const cleanLine = line.trim()
-          const m = cleanLine.match(/^[A-Da-d1-4]\s*[\.\、\:\：]\s*(.+)$/)
-          if (m) {
-            let label = m[1].trim()
-            // 剥离 Markdown 加粗标签 **...**
-            label = label.replace(/^\*\*(.*?)\*\*$/, '$1').trim()
-            if (label.includes('自由输入') || label.includes('✍️')) continue
-            if (latestChoices.length < 4) {
-              latestChoices.push({
-                key: String(latestChoices.length + 1),
-                label,
-                actionText: label,
-              })
-            }
+    if (rawLatestAnswer) {
+      // 净化思考链与内部演算
+      const latestAnswer = rawLatestAnswer
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/<think>[\s\S]*$/gi, '')
+        .replace(/🔄\s*系统核心演算逻辑[\s\S]*?(?=📖|#|<details|$)/gi, '')
+
+      const choiceHeadingMatch = latestAnswer.match(
+        /(?:(?:[#*`\s]*)(?:(?:🎲|🎯|⚡|【)\s*)?(?:行动指令与决策引导|决策引导|行动指令|行动抉择|行动指南|可选行动|你要如何回应[？?]?|行动建议|行动选项|下一步行动|决策分支)[\s\S]*$)/i
+      )
+      
+      const targetText = choiceHeadingMatch ? choiceHeadingMatch[0] : latestAnswer
+      const lines = targetText.split('\n')
+      for (const line of lines) {
+        const cleanLine = line.trim()
+        // 匹配各种格式的序号：1. / 1、 / [1] / (1) / A. / A、 / [A] / (A) / - 1. / * A. / 选项1:
+        const m = cleanLine.match(/^[-*•✦\s]*(?:\[?[A-Da-d1-4]\]?|\([A-Da-d1-4]\)|选项\s*[A-Da-d1-4])\s*[\.\、\:\：\-\s]\s*(.+)$/)
+        if (m) {
+          let label = m[1].trim()
+          // 剥离多余 Markdown 加粗与序号前缀
+          label = label.replace(/\*\*/g, '').trim()
+          label = label.replace(/^\[?[A-Da-d1-4]\]?\s*[\.\、\:\：\-\s]*/, '').trim()
+          if (label.includes('自由输入') || label.includes('✍️') || label.length < 2) continue
+          if (latestChoices.length < 4) {
+            latestChoices.push({
+              key: String(latestChoices.length + 1),
+              label,
+              actionText: label,
+            })
           }
         }
       }

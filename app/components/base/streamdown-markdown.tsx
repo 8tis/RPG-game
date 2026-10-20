@@ -109,6 +109,12 @@ function cleanAndTransformContent(raw: string): string {
     .replace(/^[#\s]*📊\s*(?:多维系统状态栏|系统状态栏|玩家状态栏|多维状态栏)[^\n]*\n*/gim, '')
     .replace(/^[#\s]*【(?:多维系统状态栏|系统状态栏|玩家状态栏|多维状态栏)】[^\n]*\n*/gim, '')
 
+  // 6. 彻底去除行首所有序号标记（如 1. / 2. / A. / B. / [A] / 1、 / 选项1: 等），替换为极简科技光标 ✦
+  text = text.replace(
+    /(^|\n)([ \t]*[-*•]?\s*)(?:\[?[A-Da-d1-4]\]?|\([A-Da-d1-4]\)|选项\s*[A-Da-d1-4])\s*[\.\、\:\：\-]\s*/gim,
+    '$1$2✦ '
+  )
+
   return text
 }
 
@@ -195,7 +201,10 @@ function extractRawText(node: any): string {
 // 点击选项快速填入输入框
 const handleOptionClick = (text: string) => {
   if (typeof window !== 'undefined' && text) {
-    const cleanText = text.replace(/^[\s•\-\*\d\.\、]+/, '').trim()
+    const cleanText = text
+      .replace(/^[-*•✦\s]*(?:\[?[A-Da-d1-4]\]?|\([A-Da-d1-4]\)|选项\s*[A-Da-d1-4])\s*[\.\、\:\：\-\s]*/i, '')
+      .replace(/^[\s•\-\*\d\.\、✦]+/, '')
+      .trim()
     window.dispatchEvent(new CustomEvent('insert-command', { detail: cleanText }))
   }
 }
@@ -266,7 +275,10 @@ const InteractiveNpcCard: FC<{
   content: string
   defaultOpen?: boolean
 }> = ({ summary, content, defaultOpen = true }) => {
-  const cleanSummary = summary.replace(/^[▶▼\s]+/, '').trim()
+  const cleanSummary = summary
+    .replace(/^[▶▼\s]+/, '')
+    .replace(/交互对象\s*\d+\s*[|｜]/, '交互对象 |')
+    .trim()
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const { trigger, detail, fields } = useMemo(() => parseNpcContent(content), [content])
 
@@ -426,17 +438,28 @@ const storyDarkComponents = {
     // 默认叙事正文
     return <p className="my-2 leading-relaxed text-[#c7d2dc] text-sm sm:text-base font-normal" {...props}>{children}</p>
   },
+  ol: ({ children, ...props }: any) => (
+    <ol className="my-2 space-y-1.5 list-none pl-0" {...props}>
+      {children}
+    </ol>
+  ),
+  ul: ({ children, ...props }: any) => (
+    <ul className="my-2 space-y-1.5 list-none pl-0" {...props}>
+      {children}
+    </ul>
+  ),
   strong: ({ children, ...props }: any) => {
     const text = extractRawText(children).trim()
-    if (/^[A-E]\b|^选项\s*[A-E]/i.test(text)) {
+    if (/^[A-E1-4]\b|^选项\s*[A-E1-4]/i.test(text)) {
+      const cleanText = text.replace(/^[-*•✦\s]*(?:\[?[A-Da-d1-4]\]?|\([A-Da-d1-4]\)|选项\s*[A-Da-d1-4])\s*[\.\、\:\：\-\s]*/i, '')
       return (
         <strong
           className="text-[#E3C362] font-black cursor-pointer hover:underline hover:text-[#f3d982] transition-colors"
-          onClick={() => handleOptionClick(text)}
+          onClick={() => handleOptionClick(cleanText)}
           title="点击将此决策指令填入输入框"
           {...props}
         >
-          {children}
+          {cleanText}
         </strong>
       )
     }
@@ -477,28 +500,33 @@ const storyDarkComponents = {
       )
     }
 
-    // 决策选项行动项 A/B/C/D
-    const isActionChoice = /^[A-E]\b|^选项\s*[A-E]/i.test(rawText)
+    // 决策选项行动项（无序号，带有 ✦ 前缀或纯行动指令卡片）
+    const isActionChoice = rawText.startsWith('✦') || /^[A-E1-4]\b|^选项\s*[A-E1-4]/i.test(rawText)
+    const cleanActionText = rawText
+      .replace(/^[-*•✦\s]*(?:\[?[A-Da-d1-4]\]?|\([A-Da-d1-4]\)|选项\s*[A-Da-d1-4])\s*[\.\、\:\：\-\s]*/i, '')
+      .replace(/^✦\s*/, '')
+      .trim()
+
     if (isActionChoice) {
       return (
         <li
           className="my-2 p-2.5 rounded-xl bg-[#1b1f26] border border-[#2d3542] hover:border-[#70D8E0] hover:bg-[#222832] transition-all cursor-pointer flex items-start gap-2.5 list-none group text-sm"
-          onClick={() => handleOptionClick(rawText)}
+          onClick={() => handleOptionClick(cleanActionText)}
           title="点击将此决策指令填入输入框"
           {...props}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#70D8E0] mt-2 group-hover:scale-125 transition-transform shrink-0" />
+          <span className="text-[#70D8E0] text-xs mt-0.5 group-hover:scale-125 transition-transform shrink-0">✦</span>
           <div className="flex-1 leading-relaxed text-[#c7d2dc] group-hover:text-white transition-colors">
-            {children}
+            {cleanActionText}
           </div>
         </li>
       )
     }
 
     return (
-      <li className="my-1.5 flex items-start gap-2 text-[#c7d2dc] text-sm leading-relaxed" {...props}>
+      <li className="my-1.5 flex items-start gap-2 text-[#c7d2dc] text-sm leading-relaxed list-none" {...props}>
         <span className="w-1.5 h-1.5 rounded-full bg-[#70D8E0] mt-2 shrink-0" />
-        <span className="flex-1">{children}</span>
+        <span className="flex-1">{cleanActionText || children}</span>
       </li>
     )
   },
@@ -575,7 +603,10 @@ const CollapsibleDetailsCard: FC<{
   content: string
   defaultOpen?: boolean
 }> = ({ summary, content, defaultOpen = false }) => {
-  const cleanSummary = summary.replace(/^[▶▼\s]+/, '').trim()
+  const cleanSummary = summary
+    .replace(/^[▶▼\s]+/, '')
+    .replace(/交互对象\s*\d+\s*[|｜]/, '交互对象 |')
+    .trim()
 
   // 识别是否属于重点交互对象 / NPC 档案卡片
   const isInteractiveTarget =
@@ -709,12 +740,27 @@ const CollapsibleThinkCard: FC<{
 
 export function StreamdownMarkdown({ content, className = '', hideChoicesInText = false }: StreamdownMarkdownProps) {
   const processedRaw = useMemo(() => {
-    if (!hideChoicesInText || !content) return content
+    if (!content) return content
     let text = content
-    const choiceHeadingIdx = text.search(/🎲\s*(?:行动指令与决策引导|决策引导|行动指令|行动抉择)/)
-    if (choiceHeadingIdx !== -1) {
-      text = text.slice(0, choiceHeadingIdx).trim()
+
+    if (hideChoicesInText) {
+      // 彻底切除回复末尾的行动选项与决策引导区域（已在底部常驻决策按钮条中显示）
+      const choiceHeadingIdx = text.search(
+        /(?:\n\s*|^)(?:[#*`\s]*)(?:(?:🎲|🎯|⚡|【)\s*)?(?:行动指令与决策引导|决策引导|行动指令|行动抉择|行动指南|可选行动|你要如何回应[？?]?|行动建议|行动选项|下一步行动|决策分支)(?:[*`\s]*[:：]?)/i
+      )
+      if (choiceHeadingIdx !== -1) {
+        text = text.slice(0, choiceHeadingIdx).trim()
+      } else {
+        // 兜底：处理没有标题、直接在末尾输出多个选项的情况
+        const trailingChoicesMatch = text.match(
+          /(?:\n\s*|^)(?:[-*•✦\s]*(?:\[?[A-Da-d1-4]\]?|\([A-Da-d1-4]\)|选项\s*[A-Da-d1-4])\s*[\.\、\:\：\-\s][^\n]+\n?){2,}\s*$/i
+        )
+        if (trailingChoicesMatch && trailingChoicesMatch.index !== undefined) {
+          text = text.slice(0, trailingChoicesMatch.index).trim()
+        }
+      }
     }
+
     return text
   }, [content, hideChoicesInText])
 

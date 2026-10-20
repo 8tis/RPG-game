@@ -156,7 +156,7 @@ const Answer: FC<IAnswerProps> = ({
       {agent_thoughts?.map((item, index) => (
         <div key={index}>
           {item.thought && (
-            <StreamdownMarkdown content={item.thought} />
+            <StreamdownMarkdown content={item.thought} hideChoicesInText={true} />
           )}
           {/* {item.tool} */}
           {/* perhaps not use tool */}
