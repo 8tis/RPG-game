@@ -612,15 +612,28 @@ const CollapsibleDetailsCard: FC<{
   const isInteractiveTarget =
     cleanSummary.includes('交互') ||
     cleanSummary.includes('NPC') ||
-    cleanSummary.includes('对象')
+    cleanSummary.includes('对象') ||
+    cleanSummary.includes('同伴') ||
+    cleanSummary.includes('伙伴') ||
+    cleanSummary.includes('人物') ||
+    cleanSummary.includes('角色') ||
+    cleanSummary.includes('变异体') ||
+    cleanSummary.includes('辅助者') ||
+    cleanSummary.includes('引导者') ||
+    cleanSummary.includes('队长') ||
+    cleanSummary.includes('詹岚') ||
+    cleanSummary.includes('张杰') ||
+    cleanSummary.includes('郑吒') ||
+    cleanSummary.includes('马修') ||
+    (content && (content.includes('【基础】') || content.includes('【关系】') || content.includes('【定位】') || content.includes('【词条】')))
 
-  // 若为交互 NPC 卡片，转入专属结构化高保真渲染器
+  // 若为交互 NPC 卡片，转入专属结构化高保真渲染器（默认展开，保证正文中在场各NPC均完整直观显示）
   if (isInteractiveTarget) {
     return (
       <InteractiveNpcCard
         summary={summary}
         content={content}
-        defaultOpen={defaultOpen || cleanSummary.includes('交互对象1') || cleanSummary.includes('NPC档案') || cleanSummary.includes('交互')}
+        defaultOpen={true}
       />
     )
   }

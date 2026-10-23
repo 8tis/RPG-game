@@ -11,7 +11,7 @@ import type { ChatItem, VisionFile, VisionSettings } from '@/types/app'
 import WorldAccessModal from './world-access-modal'
 import Toast from '@/app/components/base/toast'
 import type { FileUpload } from '@/app/components/base/file-uploader-in-attachment/types'
-import { useGameHudState } from '@/hooks/use-game-hud-state'
+import { useGameHudState, type CompanionInfo } from '@/hooks/use-game-hud-state'
 import { GameHudSidebar } from './game-hud-sidebar'
 import { ActionControls } from './action-controls'
 import { BackpackModal } from './modals/backpack-modal'
@@ -60,8 +60,18 @@ const Chat: FC<IChatProps> = ({
   const [showBackpackModal, setShowBackpackModal] = useState(false)
   const [showShopModal, setShowShopModal] = useState(false)
   const [showCompanionModal, setShowCompanionModal] = useState(false)
+  const [selectedCompanion, setSelectedCompanion] = useState<CompanionInfo | null>(null)
   const [showMobileHudDrawer, setShowMobileHudDrawer] = useState(false)
   const [showQuickCommands, setShowQuickCommands] = useState(false)
+
+  const handleOpenCompanion = (companion?: CompanionInfo) => {
+    if (companion) {
+      setSelectedCompanion(companion)
+    } else if (!selectedCompanion && hudState.companions.length > 0) {
+      setSelectedCompanion(hudState.companions[0])
+    }
+    setShowCompanionModal(true)
+  }
 
   const gameLogContainerRef = useRef<HTMLDivElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -130,7 +140,7 @@ const Chat: FC<IChatProps> = ({
         state={hudState}
         onOpenShop={() => setShowShopModal(true)}
         onOpenBackpack={() => setShowBackpackModal(true)}
-        onOpenCompanion={() => setShowCompanionModal(true)}
+        onOpenCompanion={handleOpenCompanion}
         onOpenLog={() => {}}
       />
 
@@ -151,9 +161,9 @@ const Chat: FC<IChatProps> = ({
                 setShowMobileHudDrawer(false)
                 setShowBackpackModal(true)
               }}
-              onOpenCompanion={() => {
+              onOpenCompanion={(comp) => {
                 setShowMobileHudDrawer(false)
-                setShowCompanionModal(true)
+                handleOpenCompanion(comp)
               }}
               onOpenLog={() => {}}
               isMobileDrawer={true}
@@ -282,11 +292,11 @@ const Chat: FC<IChatProps> = ({
             choices={hudState.latestChoices}
             currency={hudState.currency}
             currencyName={hudState.currencyName}
-            activeCompanion={hudState.activeCompanion}
+            activeCompanion={selectedCompanion || hudState.activeCompanion || (hudState.companions[0] || null)}
             onSend={(msg, files) => onSend(msg, files || [])}
             onOpenShop={() => setShowShopModal(true)}
             onOpenBackpack={() => setShowBackpackModal(true)}
-            onOpenCompanion={() => setShowCompanionModal(true)}
+            onOpenCompanion={() => handleOpenCompanion()}
             isResponding={isResponding}
             visionConfig={visionConfig}
             fileConfig={fileConfig}
@@ -314,11 +324,13 @@ const Chat: FC<IChatProps> = ({
         onAction={(action) => onSend(action, [])}
       />
 
-      {/* 伙伴机密档案与互动模态框 */}
+      {/* 伙伴机密档案与互动模态框 (支持多同伴切换) */}
       <CompanionModal
         isOpen={showCompanionModal}
         onClose={() => setShowCompanionModal(false)}
-        companion={hudState.activeCompanion}
+        companion={selectedCompanion || hudState.activeCompanion || (hudState.companions[0] || null)}
+        companions={hudState.companions}
+        onSelectCompanion={(comp) => setSelectedCompanion(comp)}
         onAction={(action) => onSend(action, [])}
       />
     </div>

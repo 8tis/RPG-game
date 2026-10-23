@@ -8,6 +8,8 @@ interface CompanionModalProps {
   isOpen: boolean
   onClose: () => void
   companion: CompanionInfo | null
+  companions?: CompanionInfo[]
+  onSelectCompanion?: (companion: CompanionInfo) => void
   onAction?: (actionText: string) => void
 }
 
@@ -15,6 +17,8 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
   isOpen,
   onClose,
   companion,
+  companions,
+  onSelectCompanion,
   onAction,
 }) => {
   if (!isOpen || !companion) return null
@@ -72,6 +76,31 @@ export const CompanionModal: React.FC<CompanionModalProps> = ({
             ✕
           </button>
         </div>
+
+        {/* 多同伴快速切换标签栏 */}
+        {companions && companions.length > 1 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2.5 mb-2 border-b border-purple-500/20 custom-scrollbar flex-shrink-0">
+            {companions.map((c) => {
+              const isSelected = c.name === companion.name
+              return (
+                <button
+                  key={c.name}
+                  type="button"
+                  onClick={() => onSelectCompanion?.(c)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-purple-600 text-white shadow-md border border-purple-400'
+                      : 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 border border-purple-500/20'
+                  }`}
+                >
+                  <span className="text-sm">{c.avatar || '👥'}</span>
+                  <span>{c.name}</span>
+                  <span className="text-[10px] text-rose-300 font-mono">❤️{c.affinity}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* Modal Body */}
         <div className="overflow-y-auto space-y-4 pr-1 custom-scrollbar flex-grow text-xs">

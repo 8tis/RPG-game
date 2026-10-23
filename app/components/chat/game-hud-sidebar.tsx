@@ -1,13 +1,13 @@
 'use client'
 
 import React from 'react'
-import type { GameHudState } from '@/hooks/use-game-hud-state'
+import type { GameHudState, CompanionInfo } from '@/hooks/use-game-hud-state'
 
 interface GameHudSidebarProps {
   state: GameHudState
   onOpenShop: () => void
   onOpenBackpack: () => void
-  onOpenCompanion: () => void
+  onOpenCompanion: (companion?: CompanionInfo) => void
   onOpenLog?: () => void
   isMobileDrawer?: boolean
   onCloseDrawer?: () => void
@@ -35,8 +35,11 @@ export const GameHudSidebar: React.FC<GameHudSidebarProps> = ({
     skills,
     inventory,
     quests,
+    companions: rawCompanions,
     activeCompanion,
   } = state
+
+  const companions = (rawCompanions && rawCompanions.length > 0) ? rawCompanions : (activeCompanion ? [activeCompanion] : [])
 
   const containerClasses = isMobileDrawer
     ? 'flex flex-col h-full w-[300px] sm:w-[340px] frosted-theme-card p-4 text-xs select-none shadow-2xl bg-[#161a22]/95 border-r border-white/10'
@@ -130,28 +133,46 @@ export const GameHudSidebar: React.FC<GameHudSidebarProps> = ({
           </div>
         </div>
 
-        {/* Active Companion Widget (if any) */}
-        {activeCompanion && (
-          <div
-            onClick={onOpenCompanion}
-            className="p-2.5 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 cursor-pointer transition-all shadow-sm group"
-            title="点击查看随行伙伴机密档案"
-          >
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1.5 font-bold text-purple-200">
-                <span className="text-sm">{activeCompanion.avatar || '👥'}</span>
-                <span>{activeCompanion.name}</span>
-                <span className="text-[10px] text-purple-300/80 font-normal">({activeCompanion.title || '同伴'})</span>
-              </div>
-              <span className="text-rose-400 font-mono text-[11px] font-bold flex items-center gap-0.5">
-                ❤️ {activeCompanion.affinity}/100
+        {/* Companions / Interactive NPCs List (支持多个随行同伴/交互NPC) */}
+        {companions && companions.length > 0 && (
+          <div className="space-y-1.5">
+            <h4 className="text-xs font-bold text-purple-300 flex items-center justify-between mb-1 border-b border-purple-500/20 pb-1">
+              <span className="flex items-center gap-1.5">
+                <span>👥</span>
+                <span>同行NPC ({companions.length})</span>
               </span>
-            </div>
-            <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-rose-500 to-purple-500 h-full rounded-full"
-                style={{ width: `${Math.min(100, Math.max(0, activeCompanion.affinity))}%` }}
-              />
+              <span className="text-[10px] text-purple-400 font-normal">点击互动</span>
+            </h4>
+            <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-0.5 custom-scrollbar">
+              {companions.map((comp, idx) => (
+                <div
+                  key={comp.name || idx}
+                  onClick={() => onOpenCompanion(comp)}
+                  className="p-2 rounded-xl bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/30 cursor-pointer transition-all shadow-sm group"
+                  title={`点击查看【${comp.name}】机密档案与互动`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 font-bold text-purple-200 min-w-0">
+                      <span className="text-sm shrink-0">{comp.avatar || '👥'}</span>
+                      <span className="truncate">{comp.name}</span>
+                      {comp.title && (
+                        <span className="text-[10px] text-purple-300/70 font-normal truncate max-w-[80px]">
+                          ({comp.title})
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-rose-400 font-mono text-[11px] font-bold shrink-0 ml-1">
+                      ❤️ {comp.affinity}/100
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-800 rounded-full h-1 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-rose-500 to-purple-500 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.max(0, comp.affinity))}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

@@ -70,6 +70,7 @@ export interface GameHudState {
   skills: SkillTrait[]
   inventory: InventoryItem[]
   quests: QuestItem[]
+  companions: CompanionInfo[]
   activeCompanion: CompanionInfo | null
   latestChoices: ChoiceOption[]
 }
@@ -81,6 +82,23 @@ const GRADE_COLOR_MAP: Record<string, string> = {
   '绿': 'border-emerald-400/50 bg-emerald-500/15 text-emerald-300',
   '红': 'border-rose-400/50 bg-rose-500/15 text-rose-300',
   '白': 'border-slate-400/50 bg-slate-500/15 text-slate-300',
+  '灰': 'border-slate-500/50 bg-slate-600/15 text-slate-400',
+  '灰纹': 'border-slate-500/50 bg-slate-600/15 text-slate-400',
+}
+
+// 智能根据物品名称识别装备槽位（武器、防具、饰品），杜绝将迷彩作战服误标为随身武器
+function inferEquipmentSlot(itemName: string): string {
+  const name = itemName.trim()
+  if (/(?:服|甲|战服|作战服|风衣|战甲|护甲|防弹衣|外骨骼|外套|背心|长袍|战袍|靴|手套|斗篷|防化服)/i.test(name)) {
+    return '防具'
+  }
+  if (/(?:戒|链|表|手环|徽章|玉佩|护符|项链|戒指|指环|吊坠|勋章|配饰|挂饰)/i.test(name)) {
+    return '饰品'
+  }
+  if (/(?:刀|枪|剑|匕首|冲锋枪|突击步枪|手枪|步枪|狙击枪|炮|弓|箭|弩|杖|棍|棒|斧|矛|戟|刃|鞭|折叠刀)/i.test(name)) {
+    return '随身武器'
+  }
+  return '随身装备'
 }
 
 export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): GameHudState {
@@ -108,10 +126,9 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
     const skills: SkillTrait[] = []
     const inventory: InventoryItem[] = []
     const quests: QuestItem[] = []
-    let activeCompanion: CompanionInfo | null = null
     const latestChoices: ChoiceOption[] = []
 
-    // 1. 先检查第一条玩家开局信息，提取初始姓名、评级与锚定位面
+    // 1. 先检查第一条玩家开局信息，提取初始姓名、评级、锚定位面、初始天赋与初始物资
     const firstUserMsg = chatList.find(item => !item.isAnswer && !item.isOpeningStatement)?.content
     if (firstUserMsg) {
       const worldMatch = firstUserMsg.match(/1\.\s*锚定位面：([^\n]+)/)
@@ -120,16 +137,59 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
       const nameMatch = firstUserMsg.match(/姓名:\s*([^\s｜|]+)/)
       if (nameMatch && nameMatch[1]) playerName = nameMatch[1].trim()
 
-      const rankMatch = firstUserMsg.match(/\[评级:\s*([A-Za-z]+)\]/)
+      const rankMatch = firstUserMsg.match(/\[评级:\s*([A-Za-z0-9]+)\]/)
       if (rankMatch && rankMatch[1]) rank = rankMatch[1].trim().toUpperCase()
 
-      const xpMatch = firstUserMsg.match(/外挂金手指\/核心系统:\s*([^\n]+)/)
+      // 提取宿主特权系统 / 金手指专属天赋
+      const xpMatch = firstUserMsg.match(/(?:宿主特权系统|外挂金手指\/核心系统)[:\s]*([^\s|｜\n]+)/)
       if (xpMatch && xpMatch[1]) {
-        skills.push({
-          grade: '金',
-          name: xpMatch[1].trim(),
-          color: GRADE_COLOR_MAP['金'],
-        })
+        const xpName = xpMatch[1].trim()
+        if (!skills.some(s => s.name === xpName)) {
+          skills.push({
+            grade: '金',
+            name: xpName,
+            color: GRADE_COLOR_MAP['金'],
+          })
+        }
+      }
+
+      // 提取 4. 激活本源专属天赋 与 5. 激活异界与通用天赋
+      const talentMatches = firstUserMsg.matchAll(/-\s*\[\s*([蓝金紫绿红白橙灰黑])\s*\]\s*([^:\n]+)/g)
+      for (const tm of talentMatches) {
+        const grade = tm[1]
+        const tname = tm[2].trim()
+        if (tname && !skills.some(s => s.name === tname)) {
+          skills.push({
+            grade,
+            name: tname,
+            color: GRADE_COLOR_MAP[grade] || GRADE_COLOR_MAP['蓝'],
+          })
+        }
+      }
+
+      // 提取初始随身物资（解析初始武器、防具与背包消耗品）
+      const itemsMatch = firstUserMsg.match(/初始随身物资[:：]\s*([^\n]+)/)
+      if (itemsMatch && itemsMatch[1]) {
+        const itemParts = itemsMatch[1].split(/[,，、]/)
+        for (const part of itemParts) {
+          const itemStr = part.trim()
+          if (!itemStr || itemStr.includes('无')) continue
+          const m = itemStr.match(/^(.+?)(?:\s*[xX*×]\s*(\d+))?$/)
+          const itemName = m ? m[1].trim() : itemStr
+          const count = m && m[2] ? m[2].trim() : '1'
+
+          // 智能分配装备（武器、防具、饰品）与随身背包
+          const slot = inferEquipmentSlot(itemName)
+          if (/(?:刀|枪|剑|匕首|冲锋枪|步枪|炮|斧|服|甲|战服|作战服|风衣|战甲|护甲|手环|表|防弹)/i.test(itemName)) {
+            if (!equipment.some(e => e.name === itemName)) {
+              equipment.push({ slot, name: itemName })
+            }
+          } else {
+            if (!inventory.some(i => i.name === itemName)) {
+              inventory.push({ name: itemName, count })
+            }
+          }
+        }
       }
     }
 
@@ -153,11 +213,9 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
       const lines = targetText.split('\n')
       for (const line of lines) {
         const cleanLine = line.trim()
-        // 匹配各种格式的序号：1. / 1、 / [1] / (1) / A. / A、 / [A] / (A) / - 1. / * A. / 选项1:
         const m = cleanLine.match(/^[-*•✦\s]*(?:\[?[A-Da-d1-4]\]?|\([A-Da-d1-4]\)|选项\s*[A-Da-d1-4])\s*[\.\、\:\：\-\s]\s*(.+)$/)
         if (m) {
           let label = m[1].trim()
-          // 剥离多余 Markdown 加粗与序号前缀
           label = label.replace(/\*\*/g, '').trim()
           label = label.replace(/^\[?[A-Da-d1-4]\]?\s*[\.\、\:\：\-\s]*/, '').trim()
           if (label.includes('自由输入') || label.includes('✍️') || label.length < 2) continue
@@ -172,15 +230,144 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
       }
     }
 
-    // 从最近的消息向后提取状态信息
+    // 3. 多NPC全局扫描与提取（按时间顺序更新好感与状态，保证在场所有NPC全部保留）
+    const companionMap = new Map<string, CompanionInfo>()
+
+    for (let msgIdx = 0; msgIdx < assistantMessages.length; msgIdx++) {
+      const msgContent = assistantMessages[msgIdx].content || ''
+      const detailsRegex = /<details(?:\s+[^>]*)?>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)(?:<\/details>|$)/gi
+      let match: RegExpExecArray | null
+
+      while ((match = detailsRegex.exec(msgContent)) !== null) {
+        const summary = match[1].trim()
+        const body = match[2].trim()
+
+        // 过滤玩家档案或系统面板
+        if (/(?:玩家档案|角色档案|属性面板|系统面板|数据看板|多维系统状态栏)/.test(summary)) {
+          continue
+        }
+
+        // 识别是否为人物 / NPC / 同伴 / 交互对象
+        const isNpcBody = /(?:【基础】|【外貌】|【能力】|【定位】|【关系】|【状态】)/.test(body)
+        const isNpcSummary = /(?:交互|NPC|同伴|伙伴|对象|人物|角色|随行|变异体|辅助者|引导者|队长|队员)/i.test(summary) || summary.includes('|') || summary.includes('｜')
+
+        if (!isNpcBody && !isNpcSummary) continue
+
+        // 提取纯净姓名与身份
+        let cleanSummary = summary.replace(/^[▶▼#\s]+/, '').trim()
+        let npcName = ''
+        let rawTitle = ''
+
+        if (cleanSummary.includes('|') || cleanSummary.includes('｜')) {
+          const parts = cleanSummary.split(/[|｜]/).map(p => p.trim())
+          if (/(?:交互对象|同伴|伙伴|NPC|重点角色)\s*\d*/i.test(parts[0])) {
+            npcName = parts[1]
+          } else {
+            npcName = parts[0]
+            rawTitle = parts[1]
+          }
+        } else {
+          npcName = cleanSummary.replace(/(?:交互对象|同伴|伙伴|NPC)\s*\d*[:：\s]*/i, '').trim()
+        }
+
+        // 深度清洗 npcName，剥离多余括号、符号与描述
+        npcName = npcName.replace(/^[\[【(（](.*?)[\]】)）]$/, '$1').trim()
+        const bracketMatch = npcName.match(/^([^\(（\[【]+)[\(（\[【](.*)[\)）\]】]$/)
+        if (bracketMatch) {
+          npcName = bracketMatch[1].trim()
+          if (!rawTitle) rawTitle = bracketMatch[2].trim()
+        }
+        npcName = npcName.replace(/[*#]/g, '').trim()
+        if (!npcName || npcName.length > 15 || npcName.length < 2) continue
+
+        // 过滤非人物环境
+        if (/(?:设施环境|潜藏威胁|环境|物品|背包|系统|面板|档案)/.test(npcName)) continue
+
+        // 好感度
+        let affinity = 20
+        const affMatch = body.match(/(?:好感度|好感|羁绊|关系[^\n]*?)[:\s]*\*{0,2}(\d+)(?:\s*\/\s*100)?/)
+        if (affMatch) affinity = Math.min(100, Math.max(0, parseInt(affMatch[1], 10)))
+
+        // 关系描述
+        let relation = '中立信赖'
+        const relMatch = body.match(/【关系】([^\n]+)/)
+        if (relMatch) relation = relMatch[1].replace(/[*\[\]]/g, '').trim()
+
+        // 状态描述
+        let status = '警戒正常'
+        const statMatch = body.match(/【状态】([^\n]+)/)
+        if (statMatch) status = statMatch[1].replace(/[*\[\]]/g, '').trim()
+
+        // 称号 / 团队定位 (精炼提取核心身份，控制在8字以内，避免挤压UI)
+        let title = rawTitle
+        const locMatch = body.match(/【定位】([^\n]+)/)
+        if (locMatch) {
+          const locText = locMatch[1].replace(/[\[\]{}*()（）]/g, '').trim()
+          const commaIdx = locText.search(/[,，;；|｜\/]/)
+          title = (commaIdx !== -1 ? locText.slice(0, commaIdx) : locText).trim()
+        }
+        if (!title || title.length > 10) {
+          title = title ? title.slice(0, 8) : '同行同伴'
+        }
+
+        // 专属词条
+        const npcTraits: SkillTrait[] = []
+        const traitSection = body.match(/【词条】([\s\S]*?)(?=【|$)/)
+        if (traitSection) {
+          const tMatches = traitSection[1].matchAll(/\[\s*([蓝金紫绿红白橙灰黑]|灰纹)\s*\]\s*\[?([^:\n\]]+)\]?/g)
+          for (const tm of tMatches) {
+            const grade = tm[1]
+            npcTraits.push({
+              grade,
+              name: tm[2].replace(/[*\[\]]/g, '').trim(),
+              color: GRADE_COLOR_MAP[grade] || GRADE_COLOR_MAP['蓝'],
+            })
+          }
+        }
+
+        // 观测机密情报
+        let classifiedIntel: { trigger: string; detail: string } | undefined
+        const intelMatch = body.match(/(?:【隐藏信息】\s*)?(?:🔍\s*)?观测判定通过[（(](?:点击查看详情)?[）)]\s*[：:]\s*([^\n<]+)/i)
+        if (intelMatch) {
+          classifiedIntel = {
+            trigger: '🔍 观测判定通过（点击查看详情）',
+            detail: intelMatch[1].trim(),
+          }
+        }
+
+        // 个性化角色头像
+        let avatar = '👥'
+        if (/(?:女|少女|医|萝莉|姐|詹岚)/.test(body + npcName)) avatar = '👩'
+        else if (/(?:杀手|队长|引导者|霸气|佣兵|张杰|马修)/.test(body + npcName)) avatar = '🧔'
+        else if (/(?:白领|青年|郑吒)/.test(body + npcName)) avatar = '👨'
+
+        companionMap.set(npcName, {
+          name: npcName,
+          avatar,
+          affinity,
+          title,
+          relation,
+          status,
+          classifiedIntel,
+          traits: npcTraits,
+        })
+      }
+    }
+
+    const companions: CompanionInfo[] = Array.from(companionMap.values())
+    let activeCompanion: CompanionInfo | null = companions.length > 0 ? companions[0] : null
+
+    // 4. 从最近的消息向后提取玩家核心数值（HP/MP/SP/货币等）
+    // 关键隔离：先过滤掉NPC卡片，杜绝NPC数值或回复文字泄露为玩家状态
     for (let i = assistantMessages.length - 1; i >= 0; i--) {
       const rawContent = assistantMessages[i].content || ''
 
-      // 核心净化：彻底剔除思考链与内部推演步骤，杜绝AI的草稿/动作步骤泄露为装备或属性
+      // 核心净化：剔除思考链、系统推演与NPC卡片
       const content = rawContent
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .replace(/<think>[\s\S]*$/gi, '')
         .replace(/🔄\s*系统核心演算逻辑[\s\S]*?(?=📖|#|<details|$)/gi, '')
+        .replace(/<details(?:\s+[^>]*)?>\s*<summary>(?:(?!玩家档案|角色档案|属性面板)[\s\S])*?<\/details>/gi, '')
 
       // HP
       if (!hasHp) {
@@ -236,13 +423,14 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
       const worldMatch = content.match(/【当前世界与偏移】\s*([^|｜\n]+)/)
       if (worldMatch) world = worldMatch[1].trim()
 
-      // 装备列表：仅在玩家档案作用域中严格匹配，过滤提示词思考草稿
-      if (equipment.length === 0) {
-        const profileScopeMatch = content.match(/<details[^>]*>\s*<summary>[^<]*?(?:玩家档案|角色档案|属性面板)[^<]*<\/summary>([\s\S]*?)(?:<\/details>|$)/i)
-        const scope = profileScopeMatch ? profileScopeMatch[1] : content
+      // 装备与背包：严格限定在玩家专属档案作用域（绝不跨作用域扫描NPC或正文）
+      const profileScopeMatch = rawContent.match(/<details[^>]*>\s*<summary>[^<]*?(?:玩家档案|角色档案|属性面板)[^<]*<\/summary>([\s\S]*?)(?:<\/details>|$)/i)
+      if (profileScopeMatch) {
+        const scope = profileScopeMatch[1]
 
+        // 提取装备
         const eqSection = scope.match(/【(?:装备|已装备|当前佩戴)】([\s\S]*?)(?=【|<\/details>|$)/)
-        if (eqSection) {
+        if (eqSection && equipment.length <= 2) {
           const validSlots = new Set(['武器', '主手', '主手武器', '副手', '副手武器', '防具', '护甲', '作战服', '外套', '饰品', '头部', '胸部', '腿部', '随身武器', '随身装备', '法宝', '特殊', '装备'])
           const invalidKeywords = ['字数', '风格', '步骤', '动作', '注意', 'draft', '考虑', '逻辑', '输出', '描写', '分析', '确认', '可能', '并未', '熟练地', '滑入', '指路']
 
@@ -255,32 +443,20 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
 
             if (l.includes(':') || l.includes('：')) {
               const parts = l.split(/[:：]/)
-              const slot = parts[0].trim().replace(/\*/g, '')
+              const rawSlot = parts[0].trim().replace(/\*/g, '')
               const name = parts.slice(1).join(':').trim().replace(/\*/g, '')
-              if ((validSlots.has(slot) || slot.length <= 6) && name.length > 0 && name.length < 50) {
-                equipment.push({ slot: slot || '随身武器', name })
+              const slot = (validSlots.has(rawSlot) ? rawSlot : inferEquipmentSlot(name))
+              if (name.length > 0 && name.length < 50 && !equipment.some(e => e.name === name)) {
+                equipment.push({ slot, name })
               }
-            } else if (l.length > 0 && l.length < 40) {
-              equipment.push({ slot: '随身武器', name: l.replace(/\*/g, '') })
+            } else if (l.length > 0 && l.length < 40 && !equipment.some(e => e.name === l)) {
+              equipment.push({ slot: inferEquipmentSlot(l), name: l.replace(/\*/g, '') })
             }
           }
         }
 
-        // 若【装备】栏未列出但【随身背包】中有明确标记的装备
-        if (equipment.length === 0) {
-          const invEqMatch = scope.match(/[-*•\s]*\*{0,2}(?:装备|随身武器)\*{0,2}[:：]\s*\*{0,2}([^\n*]+)/i)
-          if (invEqMatch) {
-            const eqName = invEqMatch[1].trim().replace(/\*/g, '')
-            if (eqName.length > 0 && eqName.length < 50) {
-              equipment.push({ slot: '随身武器', name: eqName })
-            }
-          }
-        }
-      }
-
-      // 天赋词条：清洗掉 Markdown 加粗和多余中括号
-      if (skills.length <= 1) {
-        const traitMatches = content.matchAll(/\[\s*([蓝金紫绿红白橙灰黑])\s*\]\s*([^\n<]+)/g)
+        // 提取玩家新觉醒的天赋词条（仅限玩家档案内部）
+        const traitMatches = scope.matchAll(/\[\s*([蓝金紫绿红白橙灰黑])\s*\]\s*([^\n<]+)/g)
         for (const tm of traitMatches) {
           const grade = tm[1]
           const rawName = tm[2].trim()
@@ -299,28 +475,25 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
             })
           }
         }
-      }
 
-      // 背包物品：清洗掉类似 **装备**: 或 **消耗品**: 前缀与加粗符号
-      if (inventory.length === 0) {
-        const invSection = content.match(/【(?:随身背包|物品栏|背包|行囊)】([\s\S]*?)(?=【|<\/details>|$)/)
-        if (invSection) {
+        // 提取背包
+        const invSection = scope.match(/【(?:随身背包|物品栏|背包|行囊)】([\s\S]*?)(?=【|<\/details>|$)/)
+        if (invSection && inventory.length <= 3) {
           const lines = invSection[1].split('\n')
           for (let l of lines) {
             l = l.trim().replace(/^[-*•\s]+/, '')
             if (!l || l.includes('</details>') || l.includes('<details>') || l.includes('<summary>')) continue
 
-            // 剥离类别前缀
             const catMatch = l.match(/^\*{0,2}(?:装备|消耗品|道具|杂物|材料|特殊物品|物品)\*{0,2}[:：]\s*(.+)$/)
-            if (catMatch) {
-              l = catMatch[1].trim()
-            }
+            if (catMatch) l = catMatch[1].trim()
             l = l.replace(/\*\*/g, '').trim()
 
             const cntMatch = l.match(/^(.*?)\s*[xX*×]\s*([0-9\.]+(?:[^\s]+)?)$/)
             if (cntMatch) {
-              inventory.push({ name: cntMatch[1].trim(), count: cntMatch[2].trim() })
-            } else {
+              if (!inventory.some(i => i.name === cntMatch[1].trim())) {
+                inventory.push({ name: cntMatch[1].trim(), count: cntMatch[2].trim() })
+              }
+            } else if (!inventory.some(i => i.name === l)) {
               inventory.push({ name: l, count: 1 })
             }
           }
@@ -335,60 +508,12 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
         const subQ = content.match(/【支线任务】([^\n]+)/)
         if (subQ) quests.push({ title: subQ[1].trim(), isMain: false })
       }
-
-      // 随行同伴/交互对象
-      if (!activeCompanion) {
-        const npcMatch = content.match(/<details[^>]*>\s*<summary>[^<]*?(?:交互对象|同伴|伙伴)[^|]*\|\s*([^<]+?)<\/summary>([\s\S]*?)(?:<\/details>|$)/i)
-        if (npcMatch) {
-          const npcName = npcMatch[1].trim()
-          const npcBody = npcMatch[2]
-
-          let affinity = 35
-          // 兼容 好感度: 77 或 【关系】玩家: **77/100**
-          const affMatch = npcBody.match(/(?:好感度|好感|羁绊|关系[^\n]*?)[:\s]*\*{0,2}(\d+)(?:\s*\/\s*100)?/)
-          if (affMatch) affinity = parseInt(affMatch[1], 10)
-
-          let relation = '中立信赖'
-          const relMatch = npcBody.match(/【关系】([^\n]+)/)
-          if (relMatch) relation = relMatch[1].trim()
-
-          let status = '正常'
-          const statMatch = npcBody.match(/【状态】([^\n]+)/)
-          if (statMatch) status = statMatch[1].trim()
-
-          let title = '剧情随行伙伴'
-          const locMatch = npcBody.match(/【定位】([^\n]+)/)
-          if (locMatch) {
-            title = locMatch[1].replace(/[\[\]{}*]/g, '').trim()
-          }
-
-          // 提取机密情报
-          let classifiedIntel: { trigger: string; detail: string } | undefined
-          const intelMatch = npcBody.match(/(?:【隐藏信息】\s*)?(?:🔍\s*)?观测判定通过[（(](?:点击查看详情)?[）)]\s*[：:]\s*([^\n<]+)/i)
-          if (intelMatch) {
-            classifiedIntel = {
-              trigger: '🔍 观测判定通过（点击查看详情）',
-              detail: intelMatch[1].trim(),
-            }
-          }
-
-          activeCompanion = {
-            name: npcName,
-            avatar: '👥',
-            affinity,
-            title,
-            relation,
-            status,
-            classifiedIntel,
-          }
-        }
-      }
     }
 
-    // 保底装备与背包数据 (若AI尚未输出)
+    // 保底装备与背包数据 (若玩家开局未产生)
     if (equipment.length === 0) {
-      equipment.push({ slot: '随身武器', name: '战术折叠刀' })
-      equipment.push({ slot: '防具', name: '战术作战服' })
+      equipment.push({ slot: '随身武器', name: '军用匕首' })
+      equipment.push({ slot: '防具', name: '迷彩作战服' })
     }
     if (inventory.length === 0) {
       inventory.push({ name: '止血急救绷带', count: 2 })
@@ -444,6 +569,7 @@ export function useGameHudState(chatList: ChatItem[], isResponding?: boolean): G
       skills,
       inventory,
       quests,
+      companions,
       activeCompanion,
       latestChoices,
     }
